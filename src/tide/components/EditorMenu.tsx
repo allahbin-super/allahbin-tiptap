@@ -109,18 +109,29 @@ export const EditorMenu: React.FC<{
       ));
   }, [editor, editable, fullscreen, editor?.menuEnableUndoRedo, editor?.menuEnableFullscreen]);
 
+  const handleButtonClick = (event: {
+    stopPropagation: () => void;
+    preventDefault: () => void;
+  }) => {
+    // 阻止事件冒泡，这将防止触发默认的表单提交事件
+    event.stopPropagation();
+    event.preventDefault();
+  };
+
   if (!editable && !editor?.readOnlyShowMenu) {
     return null;
   }
 
   return (
-    <MenuBar
-      className={classNames(menuClassName, {
-        disabled: editor?.readOnlyShowMenu || disabledMenu
-      })}
-      style={menuStyle}
-    >
-      {menuItems}
-    </MenuBar>
+    <div onClick={handleButtonClick}>
+      <MenuBar
+        className={classNames(menuClassName, {
+          disabled: editor?.readOnlyShowMenu || disabledMenu
+        })}
+        style={menuStyle}
+      >
+        {menuItems}
+      </MenuBar>
+    </div>
   );
 };
