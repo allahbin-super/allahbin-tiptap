@@ -1,18 +1,21 @@
 import React, { useEffect } from 'react';
 import './index.css';
 
-import '@gitee/tide/dist/style.css';
 import 'highlight.js/styles/default.css';
 import { ATail } from './extensions/ATail';
 import { ATitle } from './extensions/ATitle';
 import { AWenHao } from './extensions/AWenHao';
 import { StarterKit, StarterKitOptions } from './starter-kit';
 
-import { UploaderFunc } from '@gitee/tide-extension-uploader';
 import { ParseOptions } from '@tiptap/pm/model';
 import { EditorProps } from '@tiptap/pm/view';
 import { ALink } from './a-link';
 import { EditorRender, EditorRenderProps, TideEditor, useEditor } from './tide';
+
+export type UploaderFunc = (
+  file: File,
+  progressCallBack: (progress: number) => void
+) => Promise<string>;
 
 export const mockImgUploader: UploaderFunc = async (file, progressCallBack) => {
   let src = '';
@@ -22,7 +25,7 @@ export const mockImgUploader: UploaderFunc = async (file, progressCallBack) => {
   };
   reader.readAsDataURL(file);
   console.log('file', file);
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     let mockProgress = 1;
     const t = setInterval(() => {
       mockProgress++;
@@ -167,12 +170,10 @@ const ATiptapEdit: React.FC<IATiptapProps> = ({
     orderedList: false,
     blockquote: false,
     codeBlock: false,
-    horizontalRule: false,
+    horizontalRule: false
   };
 
-  const finalSimpleConfigure = simple
-    ? { ...defaultSimpleConfigure, ...userSimpleConfigure }
-    : {};
+  const finalSimpleConfigure = simple ? { ...defaultSimpleConfigure, ...userSimpleConfigure } : {};
 
   const editor = useEditor({
     extensions: [
@@ -180,14 +181,9 @@ const ATiptapEdit: React.FC<IATiptapProps> = ({
       ALink,
       StarterKit.configure({
         link: false,
-        uploader: {
-          image: {
-            uploader: props.imageUploader || mockImgUploader,
-          },
-        },
         ...(simple ? finalSimpleConfigure : {}),
-        ...starterKitOpt,
-      }),
+        ...starterKitOpt
+      })
     ],
     onChange: (doc, editorNow) => {
       let strValue: any;
@@ -204,13 +200,13 @@ const ATiptapEdit: React.FC<IATiptapProps> = ({
     editorProps: editorProps,
     editable: props.editable,
     parseOptions: parseOptions || {},
-    onReady: (nowEditor) => {
+    onReady: nowEditor => {
       if (debug) {
         console.log('editor onReady', nowEditor);
       }
       onReady?.(nowEditor);
       setIsReady(true);
-    },
+    }
   });
 
   useEffect(() => {
@@ -238,15 +234,15 @@ const ATiptapEdit: React.FC<IATiptapProps> = ({
 
   return (
     <div
-      className={`atiptap_main_${renderMode} atiptap_bordered_${
-        props.editable
-      }_${props.bordered} ${simple ? 'atiptap_simple' : ''}`}
+      className={`atiptap_main_${renderMode} atiptap_bordered_${props.editable}_${props.bordered} ${
+        simple ? 'atiptap_simple' : ''
+      }`}
     >
       <EditorRender
         editor={editor}
         style={{
           height: editorHeight,
-          ...style,
+          ...style
         }}
         onFullscreenChange={() => {
           setEditorHeight('100%');

@@ -36,7 +36,7 @@ export const MarkdownClipboardPaste = Extension.create({
               let newText = mdTailToHtml(text);
               newText = mdWenhaoToHtml(newText);
               newText = mdTitleToHtml(newText);
-              const html = this.editor.storage.markdown?.parser?.parse?.(newText, {
+              const html = (this.editor.storage as any).markdown?.parser?.parse?.(newText, {
                 inline: false
               });
               console.log('html', html);

@@ -1,7 +1,5 @@
-import { isActive } from '@gitee/tide-common';
 import { markInputRule } from '@tiptap/core';
 import { Link as TLink, LinkOptions as TLinkOptions } from '@tiptap/extension-link';
-import { showLinkEditPopup } from './menu/LinkEditPopup';
 
 export const inputRegex = /(?:^|\s)\[(.+?)]\((.+?)\)\s$/;
 
@@ -11,15 +9,6 @@ export const ALink = TLink.extend<LinkOptions>({
   inclusive: false,
 
   name: 'link',
-
-  addOptions() {
-    return {
-      ...this.parent?.(),
-      openOnClick: false,
-      linkOnPaste: false,
-      autolink: true
-    };
-  },
 
   addAttributes() {
     return {
@@ -48,13 +37,12 @@ export const ALink = TLink.extend<LinkOptions>({
       toggleLink:
         attributes =>
         ({ chain, editor }) => {
-          if (isActive(editor.state, this.name)) {
+          if (editor.isActive(this.name)) {
             return chain().unsetLink().run();
           }
-          showLinkEditPopup(this.editor, {
-            defaultHref: attributes.href
-          });
-          return true;
+          return chain()
+            .setLink(attributes || { href: '' })
+            .run();
         }
     };
   },

@@ -1,4 +1,3 @@
-import '@gitee/tide/dist/style.css';
 import 'highlight.js/styles/default.css';
 import { ITiptapJson } from '../tide';
 import TiptapRender, { IRenderConfig } from './TiptapRender';

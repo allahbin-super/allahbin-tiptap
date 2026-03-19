@@ -1,7 +1,7 @@
-import { useEditor as useEditorOriginal } from '@gitee/tide-react';
 import type { TideEditorOptions } from './TideEditor';
 import { TideEditor } from './TideEditor';
 
+import { useEffect, useState } from 'react';
 import type { DependencyList } from 'react';
 
 export * from './components/EditorContent';
@@ -16,9 +16,22 @@ export * from './TideEditor';
 export const useEditor: (
   options: Partial<TideEditorOptions>,
   deps?: DependencyList
-) => TideEditor | null = (options, deps) =>
-  // @ts-ignore
-  useEditorOriginal<TideEditor, TideEditorOptions>(TideEditor, options, deps);
+) => TideEditor | null = (options, deps = []) => {
+  const [editor, setEditor] = useState<TideEditor | null>(null);
+
+  useEffect(() => {
+    const instance = new TideEditor(options);
+    setEditor(instance);
+
+    return () => {
+      instance.destroy();
+      setEditor(null);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps);
+
+  return editor;
+};
 
 /**
  * 数据格式

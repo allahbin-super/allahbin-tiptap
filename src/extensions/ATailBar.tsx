@@ -1,41 +1,36 @@
-import { isActive } from '@gitee/tide-common';
-import { BoldProps, MenuBarItem, Tooltip, useStatusMap } from '@gitee/tide-extension-menubar';
 import React from 'react';
 import TextButton from './TextButton';
 
-export type EmojiProps = {
+export type ATailBarProps = {
   className?: string;
   style?: React.CSSProperties;
-  title?: string;
+  title?: string | undefined;
+  onClick?: () => void;
+  isActive?: boolean;
+  disabled?: boolean;
 };
 
-export const ATailBar: React.FC<BoldProps> = ({ className, style, title }) => {
-  const { editor, statusMap } = useStatusMap(() => ({
-    isActive: () => {
-      return isActive(editor.state, 'ATail');
-    },
-    disabled: () => {
-      return !editor.state.schema.nodes.ATail || !editor.can().toggleATail();
-    }
-  }));
-
+export const ATailBar: React.FC<ATailBarProps> = ({
+  className,
+  style,
+  onClick,
+  isActive,
+  disabled
+}) => {
   return (
-    <MenuBarItem className={className} style={style}>
-      <Tooltip text="落款">
-        <TextButton
-          onClick={() => editor.chain().focus().toggleATail().run()}
-          isActive={statusMap?.isActive}
-          disabled={statusMap?.disabled}
-          style={{
-            width: 48,
-            justifyContent: 'center',
-            display: 'flex',
-            alignItems: 'center'
-          }}
-        >
-          落款
-        </TextButton>
-      </Tooltip>
-    </MenuBarItem>
+    <TextButton
+      onClick={onClick}
+      isActive={isActive}
+      disabled={disabled}
+      style={{
+        width: 48,
+        justifyContent: 'center',
+        display: 'flex',
+        alignItems: 'center',
+        ...style
+      }}
+    >
+      <span className={className}>落款</span>
+    </TextButton>
   );
 };
