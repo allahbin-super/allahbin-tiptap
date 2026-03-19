@@ -1,29 +1,8 @@
-import { Commands, HighPriorityKeymap, LowPriorityKeymap } from '@gitee/tide-common';
-import { Blockquote, BlockquoteOptions } from '@gitee/tide-extension-blockquote';
-import { Bold, BoldOptions } from '@gitee/tide-extension-bold';
-import { BulletList, BulletListOptions } from '@gitee/tide-extension-bullet-list';
-import { Code, CodeOptions } from '@gitee/tide-extension-code';
-import { CodeBlock, CodeBlockOptions } from '@gitee/tide-extension-code-block';
-import { Emoji, EmojiOptions, suggestion as emojiSuggestion } from '@gitee/tide-extension-emoji';
-import { HorizontalRule, HorizontalRuleOptions } from '@gitee/tide-extension-horizontal-rule';
-import { Image, ImageOptions } from '@gitee/tide-extension-image';
-import { Indentation, IndentationOptions } from '@gitee/tide-extension-indentation';
-import { Italic, ItalicOptions } from '@gitee/tide-extension-italic';
-import { Link, LinkOptions } from '@gitee/tide-extension-link';
-import { ListItem, ListItemOptions } from '@gitee/tide-extension-list-item';
-import { ListsIndentation, ListsIndentationOptions } from '@gitee/tide-extension-lists-indentation';
-import { OrderedList, OrderedListOptions } from '@gitee/tide-extension-ordered-list';
-import { Strike, StrikeOptions } from '@gitee/tide-extension-strike';
-import {
-  Table,
-  TableCell,
-  TableCellOptions,
-  TableOptions,
-  TableRow,
-  TableRowOptions
-} from '@gitee/tide-extension-table';
-import { TaskItem, TaskItemOptions } from '@gitee/tide-extension-task-item';
-import { Uploader, UploaderOptions } from '@gitee/tide-extension-uploader';
+import { Blockquote, BlockquoteOptions } from '@tiptap/extension-blockquote';
+import { Bold, BoldOptions } from '@tiptap/extension-bold';
+import { BulletList, BulletListOptions } from '@tiptap/extension-bullet-list';
+import { Code, CodeOptions } from '@tiptap/extension-code';
+import { CodeBlock, CodeBlockOptions } from '@tiptap/extension-code-block';
 import { Extension, Extensions } from '@tiptap/core';
 import { Document } from '@tiptap/extension-document';
 import { Dropcursor, DropcursorOptions } from '@tiptap/extension-dropcursor';
@@ -31,7 +10,18 @@ import { Gapcursor } from '@tiptap/extension-gapcursor';
 import { HardBreak, HardBreakOptions } from '@tiptap/extension-hard-break';
 import { Heading, HeadingOptions } from '@tiptap/extension-heading';
 import { History, HistoryOptions } from '@tiptap/extension-history';
+import { HorizontalRule, HorizontalRuleOptions } from '@tiptap/extension-horizontal-rule';
+import { Image, ImageOptions } from '@tiptap/extension-image';
+import { Italic, ItalicOptions } from '@tiptap/extension-italic';
+import { Link, LinkOptions } from '@tiptap/extension-link';
+import { ListItem, ListItemOptions } from '@tiptap/extension-list-item';
+import { OrderedList, OrderedListOptions } from '@tiptap/extension-ordered-list';
 import { Paragraph, ParagraphOptions } from '@tiptap/extension-paragraph';
+import { Strike, StrikeOptions } from '@tiptap/extension-strike';
+import { Table, TableOptions } from '@tiptap/extension-table';
+import { TableCell, TableCellOptions } from '@tiptap/extension-table-cell';
+import { TableRow, TableRowOptions } from '@tiptap/extension-table-row';
+import { TaskItem, TaskItemOptions } from '@tiptap/extension-task-item';
 import { TaskList, TaskListOptions } from '@tiptap/extension-task-list';
 import { Text } from '@tiptap/extension-text';
 import { TextAlign, TextAlignOptions } from '@tiptap/extension-text-align';
@@ -54,8 +44,8 @@ export interface StarterKitOptions {
   blockquote: Partial<BlockquoteOptions> | false;
   hardBreak: Partial<HardBreakOptions> | false;
   horizontalRule: Partial<HorizontalRuleOptions> | false;
-  listsIndentation: Partial<ListsIndentationOptions> | false;
-  indentation: Partial<IndentationOptions> | false;
+  listsIndentation: Record<string, any> | false;
+  indentation: Record<string, any> | false;
   bulletList: Partial<BulletListOptions> | false;
   orderedList: Partial<OrderedListOptions> | false;
   listItem: Partial<ListItemOptions>;
@@ -66,11 +56,11 @@ export interface StarterKitOptions {
   tableCell: Partial<TableCellOptions>;
   codeBlock: Partial<CodeBlockOptions> | false;
   image: Partial<ImageOptions> | false;
-  emoji: Partial<EmojiOptions> | false;
+  emoji: Record<string, any> | false;
   history: Partial<HistoryOptions> | false;
   dropcursor: Partial<DropcursorOptions> | false;
   gapcursor: false;
-  uploader: Partial<UploaderOptions> | false;
+  uploader: Record<string, any> | false;
   markdown: Partial<MarkdownOptions> | false;
 }
 
@@ -80,18 +70,6 @@ export const StarterKit = Extension.create<StarterKitOptions>({
   addExtensions() {
     const extensions: Extensions = [];
     const tableCellContent: string[] = [];
-
-    if (this.options.commands !== false) {
-      extensions.push(Commands);
-    }
-
-    if (this.options.highPriorityKeymap !== false) {
-      extensions.push(HighPriorityKeymap);
-    }
-
-    if (this.options.lowPriorityKeymap !== false) {
-      extensions.push(LowPriorityKeymap);
-    }
 
     if (this.options.document !== false) {
       extensions.push(Document);
@@ -154,14 +132,6 @@ export const StarterKit = Extension.create<StarterKitOptions>({
       tableCellContent.push('horizontalRule');
     }
 
-    if (this.options.listsIndentation !== false) {
-      extensions.push(ListsIndentation.configure(this.options.listsIndentation));
-    }
-
-    if (this.options.indentation !== false) {
-      extensions.push(Indentation.configure(this.options.indentation));
-    }
-
     if (this.options.bulletList !== false) {
       extensions.push(BulletList.configure(this.options.bulletList));
     }
@@ -193,15 +163,8 @@ export const StarterKit = Extension.create<StarterKitOptions>({
     }
 
     if (this.options.image !== false) {
-      // uploader extension is required
-      if (this.options.uploader !== false) {
-        extensions.push(Image.configure(this.options.image));
-        tableCellContent.push('image');
-      } else {
-        console.warn(
-          'Uploader extension is required for image extension. Please enable uploader extension.'
-        );
-      }
+      extensions.push(Image.configure(this.options.image));
+      tableCellContent.push('image');
     }
 
     if (this.options.table !== false) {
@@ -211,17 +174,6 @@ export const StarterKit = Extension.create<StarterKitOptions>({
       extensions.push(Table.configure(this.options.table));
       extensions.push(TableRow.configure(this.options.tableRow));
       extensions.push(TableCellExtension.configure(this.options.tableCell));
-    }
-
-    if (this.options.emoji !== false) {
-      extensions.push(
-        Emoji.configure({
-          enableEmoticons: true,
-          forceFallbackImages: false,
-          suggestion: emojiSuggestion,
-          ...this.options.emoji
-        })
-      );
     }
 
     if (this.options.history !== false) {
@@ -234,10 +186,6 @@ export const StarterKit = Extension.create<StarterKitOptions>({
 
     if (this.options.gapcursor !== false) {
       extensions.push(Gapcursor);
-    }
-
-    if (this.options.uploader !== false) {
-      extensions.push(Uploader.configure(this.options.uploader));
     }
 
     if (this.options.markdown !== false) {

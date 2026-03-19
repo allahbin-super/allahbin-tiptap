@@ -1,4 +1,4 @@
-import { useEditor as useEditorOriginal } from '@gitee/tide-react';
+import { useEditor as useEditorOriginal } from '@tiptap/react';
 import type { TideEditorOptions } from './TideEditor';
 import { TideEditor } from './TideEditor';
 

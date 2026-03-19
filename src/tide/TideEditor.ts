@@ -1,21 +1,11 @@
-import { Editor } from '@gitee/tide-react';
+import { Editor } from '@tiptap/core';
 import type { Content, EditorOptions, JSONContent } from '@tiptap/core';
 import { Document } from '@tiptap/extension-document';
 import { Paragraph } from '@tiptap/extension-paragraph';
 import { Text } from '@tiptap/extension-text';
-import type { ParseOptions } from '@tiptap/pm/model';
 import type { Plugin, Transaction } from '@tiptap/pm/state';
 import React from 'react';
 import { mdTailToHtml, mdTitleToHtml, mdWenhaoToHtml } from '../markdown';
-
-type StringKeyOf<T> = Extract<keyof T, string>;
-type CallbackType<
-  T extends Record<string, any>,
-  EventName extends StringKeyOf<T>
-> = T[EventName] extends any[] ? T[EventName] : [T[EventName]];
-type CallbackFunction<T extends Record<string, any>, EventName extends StringKeyOf<T>> = (
-  ...props: CallbackType<T, EventName>
-) => any;
 
 export interface EditorEvents {
   beforeCreate: { editor: TideEditor };
@@ -137,51 +127,28 @@ export class TideEditor extends Editor {
   public setFullscreen(fullscreen: boolean) {
     this.fullscreen = fullscreen;
     this.onFullscreenChange?.(fullscreen, this);
-    this.emit('update', { editor: this, transaction: this.state.tr });
+    (this as any).emit('update', { editor: this, transaction: this.state.tr });
 
     if (fullscreen) {
       this.commands.focus(this.options.autofocus);
     }
   }
 
-  public setContent(content: Content, emitUpdate?: boolean, parseOptions?: ParseOptions): boolean {
+  public setContent(content: Content, emitUpdate?: boolean): boolean {
     // 如果是字符串，就转换下
     if (typeof content === 'string') {
       content = mdWenhaoToHtml(content);
       content = mdTailToHtml(content);
       content = mdTitleToHtml(content);
     }
-    return this.commands.setContent(content, emitUpdate, parseOptions);
+    return this.commands.setContent(content, { emitUpdate });
   }
 
   public getMarkdown(): string {
-    return this.storage.markdown?.getMarkdown?.() || '';
+    return (this.storage as any).markdown?.getMarkdown?.() || '';
   }
 
   public get isReadOnly(): boolean {
     return !this.isEditable;
-  }
-
-  public on<EventName extends StringKeyOf<EditorEvents>>(
-    event: EventName,
-    fn: CallbackFunction<EditorEvents, EventName>
-  ): this {
-    // @ts-ignore
-    return super.on(event, fn);
-  }
-
-  protected emit<EventName extends StringKeyOf<EditorEvents>>(
-    event: EventName,
-    ...args: CallbackType<EditorEvents, EventName>
-  ): this {
-    return super.emit(event, ...args);
-  }
-
-  public off<EventName extends StringKeyOf<EditorEvents>>(
-    event: EventName,
-    fn?: CallbackFunction<EditorEvents, EventName>
-  ): this {
-    // @ts-ignore
-    return super.off(event, fn);
   }
 }

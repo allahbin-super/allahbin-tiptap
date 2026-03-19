@@ -29,10 +29,8 @@ export const Markdown = TiptapMarkdown.extend<MarkdownOptions>({
   },
 
   onBeforeCreate() {
-    this.parent?.();
-
-    this.editor.storage.markdown.getMarkdown = (content?: Node) => {
-      let mdStr = this.editor.storage.markdown.serializer.serialize(
+    (this.editor.storage as any).markdown.getMarkdown = (content?: Node) => {
+      let mdStr = (this.editor.storage as any).markdown.serializer.serialize(
         content ?? this.editor.state.doc
       );
       mdStr = aHeadingHtmlToMd(mdStr);
@@ -49,9 +47,7 @@ export const Markdown = TiptapMarkdown.extend<MarkdownOptions>({
     ];
   },
   onCreate() {
-    // @ts-ignore
-    this.editor.options.content = this.editor.options.initialContent;
-    // @ts-ignore
-    delete this.editor.options.initialContent;
+    (this.editor.options as any).content = (this.editor.options as any).initialContent;
+    delete (this.editor.options as any).initialContent;
   }
 });

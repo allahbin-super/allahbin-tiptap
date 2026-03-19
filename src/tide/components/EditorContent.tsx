@@ -1,4 +1,4 @@
-import { EditorContent as TEditorContent } from '@gitee/tide-react';
+import { EditorContent as TEditorContent } from '@tiptap/react';
 import classNames from 'classnames';
 import React from 'react';
 import type { TideEditor } from '../TideEditor';

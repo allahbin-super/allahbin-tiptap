@@ -1,18 +1,18 @@
 import React, { useEffect } from 'react';
 import './index.css';
 
-import '@gitee/tide/dist/style.css';
 import 'highlight.js/styles/default.css';
 import { ATail } from './extensions/ATail';
 import { ATitle } from './extensions/ATitle';
 import { AWenHao } from './extensions/AWenHao';
 import { StarterKit, StarterKitOptions } from './starter-kit';
 
-import { UploaderFunc } from '@gitee/tide-extension-uploader';
 import { ParseOptions } from '@tiptap/pm/model';
 import { EditorProps } from '@tiptap/pm/view';
 import { ALink } from './a-link';
 import { EditorRender, EditorRenderProps, TideEditor, useEditor } from './tide';
+
+export type UploaderFunc = (file: File, progressCallBack: (progress: number) => void) => Promise<string>;
 
 export const mockImgUploader: UploaderFunc = async (file, progressCallBack) => {
   let src = '';
@@ -180,11 +180,6 @@ const ATiptapEdit: React.FC<IATiptapProps> = ({
       ALink,
       StarterKit.configure({
         link: false,
-        uploader: {
-          image: {
-            uploader: props.imageUploader || mockImgUploader,
-          },
-        },
         ...(simple ? finalSimpleConfigure : {}),
         ...starterKitOpt,
       }),

@@ -1,5 +1,5 @@
 import React, { createContext, PropsWithChildren, useContext, useEffect, useState } from 'react';
-import type { EditorEvents, TideEditor } from '../TideEditor';
+import type { TideEditor } from '../TideEditor';
 
 export type EditorContextType = {
   editor: TideEditor | null;
@@ -37,9 +37,9 @@ export const EditorContextProvider: React.FC<PropsWithChildren<{ editor: TideEdi
     setEditable(!!editor?.isEditable);
     setFullscreen(!!editor?.fullscreen);
 
-    const updateHandle = (props: EditorEvents['update']) => {
-      setEditable(props.editor.isEditable);
-      setFullscreen(props.editor.fullscreen);
+    const updateHandle = () => {
+      setEditable(editor.isEditable);
+      setFullscreen(editor.fullscreen);
     };
     editor?.on('update', updateHandle);
     return () => {

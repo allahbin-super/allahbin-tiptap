@@ -1,4 +1,4 @@
-import { isWindows } from '@gitee/tide-common';
+const isWindows = () => typeof navigator !== 'undefined' && /win/i.test(navigator.platform);
 
 export const command = isWindows() ? 'Ctrl' : '⌘';
 

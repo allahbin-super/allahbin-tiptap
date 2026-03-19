@@ -14,7 +14,7 @@ export const MarkdownClipboardCopy = Extension.create({
             if (!doc) {
               return '';
             }
-            return this.editor.storage.markdown?.getMarkdown?.(doc) || '';
+            return (this.editor.storage as any).markdown?.getMarkdown?.(doc) || '';
           }
         }
       })

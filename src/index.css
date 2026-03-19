@@ -193,3 +193,46 @@
 .atiptap_main_custom .tide-content .ProseMirror {
   /* 可以扩展 custom 模式的默认样式 */
 }
+
+/* 简易菜单样式（替代 tide menubar 样式） */
+.tide-menu-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 8px 12px;
+  background: #fff;
+}
+
+.tide-menu-bar-divider {
+  width: 1px;
+  height: 20px;
+  background: #e5e7eb;
+  margin: 0 4px;
+}
+
+.tide-menu-bar__btn {
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
+  padding: 4px 8px;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.tide-menu-bar__btn:hover {
+  background: #f3f4f6;
+}
+
+.tide-menu-bar__btn--active {
+  color: #1d4ed8;
+  border-color: #93c5fd;
+  background: #eff6ff;
+}
+
+.tide-menu-bar__btn--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
