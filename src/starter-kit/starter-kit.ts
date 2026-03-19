@@ -1,30 +1,36 @@
+import { Extension, Extensions } from '@tiptap/core';
 import { Blockquote, BlockquoteOptions } from '@tiptap/extension-blockquote';
 import { Bold, BoldOptions } from '@tiptap/extension-bold';
-import { BulletList, BulletListOptions } from '@tiptap/extension-bullet-list';
 import { Code, CodeOptions } from '@tiptap/extension-code';
 import { CodeBlock, CodeBlockOptions } from '@tiptap/extension-code-block';
-import { Extension, Extensions } from '@tiptap/core';
 import { Document } from '@tiptap/extension-document';
-import { Dropcursor, DropcursorOptions } from '@tiptap/extension-dropcursor';
-import { Gapcursor } from '@tiptap/extension-gapcursor';
 import { HardBreak, HardBreakOptions } from '@tiptap/extension-hard-break';
 import { Heading, HeadingOptions } from '@tiptap/extension-heading';
-import { History, HistoryOptions } from '@tiptap/extension-history';
 import { HorizontalRule, HorizontalRuleOptions } from '@tiptap/extension-horizontal-rule';
 import { Image, ImageOptions } from '@tiptap/extension-image';
 import { Italic, ItalicOptions } from '@tiptap/extension-italic';
+import {
+  BulletList,
+  BulletListOptions,
+  ListItem,
+  ListItemOptions,
+  OrderedList,
+  OrderedListOptions,
+  TaskItem,
+  TaskItemOptions,
+  TaskList,
+  TaskListOptions
+} from '@tiptap/extension-list';
 import { Link, LinkOptions } from '@tiptap/extension-link';
-import { ListItem, ListItemOptions } from '@tiptap/extension-list-item';
-import { OrderedList, OrderedListOptions } from '@tiptap/extension-ordered-list';
 import { Paragraph, ParagraphOptions } from '@tiptap/extension-paragraph';
 import { Strike, StrikeOptions } from '@tiptap/extension-strike';
 import { Table, TableOptions } from '@tiptap/extension-table';
 import { TableCell, TableCellOptions } from '@tiptap/extension-table-cell';
+import { TableHeader, TableHeaderOptions } from '@tiptap/extension-table-header';
 import { TableRow, TableRowOptions } from '@tiptap/extension-table-row';
-import { TaskItem, TaskItemOptions } from '@tiptap/extension-task-item';
-import { TaskList, TaskListOptions } from '@tiptap/extension-task-list';
 import { Text } from '@tiptap/extension-text';
 import { TextAlign, TextAlignOptions } from '@tiptap/extension-text-align';
+import { Dropcursor, DropcursorOptions, Gapcursor, UndoRedo, UndoRedoOptions } from '@tiptap/extensions';
 import { Markdown, MarkdownOptions } from '../markdown';
 
 export interface StarterKitOptions {
@@ -54,10 +60,11 @@ export interface StarterKitOptions {
   table: Partial<TableOptions> | false;
   tableRow: Partial<TableRowOptions>;
   tableCell: Partial<TableCellOptions>;
+  tableHeader: Partial<TableHeaderOptions>;
   codeBlock: Partial<CodeBlockOptions> | false;
   image: Partial<ImageOptions> | false;
   emoji: Record<string, any> | false;
-  history: Partial<HistoryOptions> | false;
+  history: Partial<UndoRedoOptions> | false;
   dropcursor: Partial<DropcursorOptions> | false;
   gapcursor: false;
   uploader: Record<string, any> | false;
@@ -174,10 +181,11 @@ export const StarterKit = Extension.create<StarterKitOptions>({
       extensions.push(Table.configure(this.options.table));
       extensions.push(TableRow.configure(this.options.tableRow));
       extensions.push(TableCellExtension.configure(this.options.tableCell));
+      extensions.push(TableHeader.configure(this.options.tableHeader));
     }
 
     if (this.options.history !== false) {
-      extensions.push(History.configure(this.options.history));
+      extensions.push(UndoRedo.configure(this.options.history));
     }
 
     if (this.options.dropcursor !== false) {

@@ -167,25 +167,27 @@ export const EditorMenu: React.FC<{
           <TextButton
             key="table"
             onClick={() =>
-              editor
-                .chain()
-                .focus()
-                .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
-                .run()
+              editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
             }
           >
             表格
           </TextButton>
         ),
         codeBlock && (
-          <TextButton key="codeBlock" onClick={() => editor.chain().focus().toggleCodeBlock().run()}>
+          <TextButton
+            key="codeBlock"
+            onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+          >
             代码块
           </TextButton>
         )
       ],
       [
         blockquote && (
-          <TextButton key="blockquote" onClick={() => editor.chain().focus().toggleBlockquote().run()}>
+          <TextButton
+            key="blockquote"
+            onClick={() => editor.chain().focus().toggleBlockquote().run()}
+          >
             引用
           </TextButton>
         ),

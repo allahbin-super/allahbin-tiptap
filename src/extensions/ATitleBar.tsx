@@ -1,8 +1,8 @@
-import { ChevronDown } from 'lucide-react';
-import { command, option } from '../menubar';
 import Tippy from '@tippyjs/react';
 import classNames from 'classnames';
+import { ChevronDown } from 'lucide-react';
 import React, { useState } from 'react';
+import { command, option } from '../menubar';
 import type { TideEditor } from '../tide';
 import TextButton from './TextButton';
 
@@ -34,7 +34,9 @@ export const ATitleBar: React.FC<ATitleBarProps> = ({ editor }) => {
           !editor.state.schema.nodes.heading || !editor.can().toggleHeading?.({ level } as any);
       } else {
         const levelNum = level.split('').pop();
-        map[`${level}IsActive`] = editor.isActive('ATitle', { level: Number(levelNum) });
+        map[`${level}IsActive`] = editor.isActive('ATitle', {
+          level: Number(levelNum)
+        });
         map[`${level}Disabled`] =
           !editor.state.schema.nodes.heading ||
           !editor.can().toggleATitle?.({ level: Number(levelNum) as any });
@@ -80,10 +82,10 @@ export const ATitleBar: React.FC<ATitleBarProps> = ({ editor }) => {
                   editor.chain().focus().setParagraph().run();
                   setHeadVisible(false);
                 }}
-                  className={classNames('tide-dropdown-menu__item', {
-                    'tide-dropdown-menu__item--active': statusMap.paragraphIsActive,
-                    'tide-dropdown-menu__item--disabled': statusMap.paragraphIsDisabled
-                  })}
+                className={classNames('tide-dropdown-menu__item', {
+                  'tide-dropdown-menu__item--active': statusMap.paragraphIsActive,
+                  'tide-dropdown-menu__item--disabled': statusMap.paragraphIsDisabled
+                })}
               >
                 <div className={classNames('tide-menu-head-row')}>
                   <span>正文</span>
@@ -95,8 +97,8 @@ export const ATitleBar: React.FC<ATitleBarProps> = ({ editor }) => {
                   key={level}
                   onClick={() => {
                     if (typeof level === 'number') {
-                        if (
-                          statusMap[`heading${level}Disabled`] ||
+                      if (
+                        statusMap[`heading${level}Disabled`] ||
                         !editor
                           .can()
                           .chain()
@@ -109,8 +111,8 @@ export const ATitleBar: React.FC<ATitleBarProps> = ({ editor }) => {
                     } else {
                       // 取出最后一个字符串
                       const levelNum = level.split('').pop();
-                        if (
-                          statusMap[`${level}Disabled`] ||
+                      if (
+                        statusMap[`${level}Disabled`] ||
                         !editor
                           .can()
                           .chain()

@@ -10,7 +10,13 @@ export type ATailBarProps = {
   disabled?: boolean;
 };
 
-export const ATailBar: React.FC<ATailBarProps> = ({ className, style, onClick, isActive, disabled }) => {
+export const ATailBar: React.FC<ATailBarProps> = ({
+  className,
+  style,
+  onClick,
+  isActive,
+  disabled
+}) => {
   return (
     <TextButton
       onClick={onClick}

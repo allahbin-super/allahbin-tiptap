@@ -40,7 +40,9 @@ export const ALink = TLink.extend<LinkOptions>({
           if (editor.isActive(this.name)) {
             return chain().unsetLink().run();
           }
-          return chain().setLink(attributes || { href: '' }).run();
+          return chain()
+            .setLink(attributes || { href: '' })
+            .run();
         }
     };
   },
