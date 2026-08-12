@@ -237,3 +237,36 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+.tide-menu-resource-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f8fafc;
+  font-size: 12px;
+}
+
+.tide-menu-resource-input label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tide-menu-resource-input input {
+  width: 220px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.tide-menu-resource-input button {
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
+  padding: 4px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}

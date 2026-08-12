@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ATailBar } from '../../extensions/ATailBar';
 import { ATitleBar } from '../../extensions/ATitleBar';
 import { AWenHaoBar } from '../../extensions/AWenHaoBar';
@@ -16,6 +16,30 @@ export const EditorMenu: React.FC<{
   menuStyle?: React.CSSProperties;
 }> = ({ editor, disabledMenu = false, menuClassName, menuStyle, onFullscreenChange }) => {
   const { fullscreen, editable } = useEditorContext();
+  const [resourceInput, setResourceInput] = useState<{
+    type: 'link' | 'image';
+    value: string;
+  } | null>(null);
+  const resourceInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    resourceInputRef.current?.focus();
+  }, [resourceInput]);
+
+  const applyResource = () => {
+    if (!editor || !resourceInput?.value.trim()) {
+      return;
+    }
+
+    const value = resourceInput.value.trim();
+    if (resourceInput.type === 'link') {
+      editor.chain().focus().extendMarkRange('link').setLink({ href: value }).run();
+    } else {
+      editor.chain().focus().setImage({ src: value }).run();
+    }
+    setResourceInput(null);
+  };
+
   const menuItems = useMemo(() => {
     if (!editor) {
       return null;
@@ -138,11 +162,10 @@ export const EditorMenu: React.FC<{
           <TextButton
             key="link"
             onClick={() => {
-              const href = window.prompt('请输入链接地址');
-              if (!href) {
-                return;
-              }
-              editor.chain().focus().extendMarkRange('link').setLink({ href }).run();
+              setResourceInput({
+                type: 'link',
+                value: editor.getAttributes('link').href || ''
+              });
             }}
             isActive={editor.isActive('link')}
           >
@@ -150,16 +173,7 @@ export const EditorMenu: React.FC<{
           </TextButton>
         ),
         image && (
-          <TextButton
-            key="image"
-            onClick={() => {
-              const src = window.prompt('请输入图片地址');
-              if (!src) {
-                return;
-              }
-              editor.chain().focus().setImage({ src }).run();
-            }}
-          >
+          <TextButton key="image" onClick={() => setResourceInput({ type: 'image', value: '' })}>
             图片
           </TextButton>
         ),
@@ -249,6 +263,39 @@ export const EditorMenu: React.FC<{
       >
         {menuItems}
       </MenuBar>
+      {resourceInput && (
+        <div className="tide-menu-resource-input" role="dialog" aria-label="资源地址输入">
+          <label>
+            {resourceInput.type === 'link' ? '链接地址' : '图片地址'}
+            <input
+              ref={resourceInputRef}
+              type="url"
+              value={resourceInput.value}
+              placeholder="https://"
+              onChange={event =>
+                setResourceInput(current =>
+                  current ? { ...current, value: event.target.value } : current
+                )
+              }
+              onKeyDown={event => {
+                if (event.key === 'Enter') {
+                  event.preventDefault();
+                  applyResource();
+                }
+                if (event.key === 'Escape') {
+                  setResourceInput(null);
+                }
+              }}
+            />
+          </label>
+          <button type="button" onClick={applyResource}>
+            确定
+          </button>
+          <button type="button" onClick={() => setResourceInput(null)}>
+            取消
+          </button>
+        </div>
+      )}
     </div>
   );
 };
