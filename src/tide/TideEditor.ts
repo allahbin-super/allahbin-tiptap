@@ -3,7 +3,7 @@ import { Editor } from '@tiptap/core';
 import { Document } from '@tiptap/extension-document';
 import { Paragraph } from '@tiptap/extension-paragraph';
 import { Text } from '@tiptap/extension-text';
-import type { Plugin, Transaction } from '@tiptap/pm/state';
+import type { Transaction } from '@tiptap/pm/state';
 import React from 'react';
 import { mdTailToHtml, mdTitleToHtml, mdWenhaoToHtml } from '../markdown';
 
@@ -88,28 +88,6 @@ export class TideEditor extends Editor {
       },
       // @ts-ignore
       onCreate: (props: EditorEvents['create']) => {
-        const { state, view } = props.editor;
-        // 调整 suggestion 插件的优先级 (解决 # 与 heading input rule 冲突的问题)
-        if (state.plugins.length > 0) {
-          const restOfPlugins: Plugin[] = [];
-          const suggestionPlugins: Plugin[] = [];
-          state.plugins.forEach(plugin => {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore: The `Plugin` type does not include `key`
-            if ((plugin.key as string).includes('Suggestion')) {
-              suggestionPlugins.push(plugin);
-            } else {
-              restOfPlugins.push(plugin);
-            }
-          });
-          // Tiptap's ProseMirror facade and the view can expose compatible
-          // EditorState types through different package instances.
-          view.updateState(
-            state.reconfigure({
-              plugins: [...suggestionPlugins, ...restOfPlugins]
-            }) as unknown as Parameters<typeof view.updateState>[0]
-          );
-        }
         originalEditorOptions.onCreate?.(props);
         onReady?.(props.editor);
       },
