@@ -49,6 +49,11 @@
   "resolutions": {
     "lowlight": "2.9.0"
   },
+  "pnpm": {
+    "overrides": {
+      "prosemirror-state": "1.4.4"
+    }
+  },
   "dependencies": {
     "@tippyjs/react": "^4.2.6",
     "@tiptap/core": "^3.20.4",
