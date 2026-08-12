@@ -28,7 +28,8 @@ export const Markdown = TiptapMarkdown.extend<MarkdownOptions>({
     };
   },
 
-  onBeforeCreate() {
+  onBeforeCreate(event) {
+    this.parent?.(event);
     (this.editor.storage as any).markdown.getMarkdown = (content?: Node) => {
       let mdStr = (this.editor.storage as any).markdown.serializer.serialize(
         content ?? this.editor.state.doc
@@ -46,8 +47,7 @@ export const Markdown = TiptapMarkdown.extend<MarkdownOptions>({
       ...(this.options.paste ? [MarkdownClipboardPaste] : [])
     ];
   },
-  onCreate() {
-    (this.editor.options as any).content = (this.editor.options as any).initialContent;
-    delete (this.editor.options as any).initialContent;
+  onCreate(event) {
+    this.parent?.(event);
   }
 });
