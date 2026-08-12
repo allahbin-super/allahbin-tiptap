@@ -102,10 +102,12 @@ export class TideEditor extends Editor {
               restOfPlugins.push(plugin);
             }
           });
+          // Tiptap's ProseMirror facade and the view can expose compatible
+          // EditorState types through different package instances.
           view.updateState(
             state.reconfigure({
               plugins: [...suggestionPlugins, ...restOfPlugins]
-            })
+            }) as unknown as Parameters<typeof view.updateState>[0]
           );
         }
         originalEditorOptions.onCreate?.(props);
