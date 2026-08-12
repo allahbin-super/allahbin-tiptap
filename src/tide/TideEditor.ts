@@ -18,18 +18,17 @@ export interface EditorEvents {
   destroy: void;
 }
 
-export interface TideEditorOptions
-  extends Omit<
-    EditorOptions,
-    | 'onBeforeCreate'
-    | 'onCreate'
-    | 'onUpdate'
-    | 'onSelectionUpdate'
-    | 'onTransaction'
-    | 'onFocus'
-    | 'onBlur'
-    | 'onDestroy'
-  > {
+export interface TideEditorOptions extends Omit<
+  EditorOptions,
+  | 'onBeforeCreate'
+  | 'onCreate'
+  | 'onUpdate'
+  | 'onSelectionUpdate'
+  | 'onTransaction'
+  | 'onFocus'
+  | 'onBlur'
+  | 'onDestroy'
+> {
   readOnlyEmptyView?: React.ReactNode;
   readOnlyShowMenu?: boolean;
   menuEnableUndoRedo?: boolean;

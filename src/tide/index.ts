@@ -1,8 +1,8 @@
 import type { TideEditorOptions } from './TideEditor';
 import { TideEditor } from './TideEditor';
 
-import { useEffect, useState } from 'react';
 import type { DependencyList } from 'react';
+import { useEffect, useState } from 'react';
 
 export * from './components/EditorContent';
 export * from './components/EditorLayout';

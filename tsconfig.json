@@ -14,5 +14,6 @@
       "@allahbin/tiptap": ["src"],
       "@allahbin/tiptap/*": ["src/*", "*"]
     }
-  }
+  },
+  "include": ["src", "docs", "example", ".dumirc.ts"]
 }

@@ -9,6 +9,7 @@ import { Heading, HeadingOptions } from '@tiptap/extension-heading';
 import { HorizontalRule, HorizontalRuleOptions } from '@tiptap/extension-horizontal-rule';
 import { Image, ImageOptions } from '@tiptap/extension-image';
 import { Italic, ItalicOptions } from '@tiptap/extension-italic';
+import { Link, LinkOptions } from '@tiptap/extension-link';
 import {
   BulletList,
   BulletListOptions,
@@ -21,7 +22,6 @@ import {
   TaskList,
   TaskListOptions
 } from '@tiptap/extension-list';
-import { Link, LinkOptions } from '@tiptap/extension-link';
 import { Paragraph, ParagraphOptions } from '@tiptap/extension-paragraph';
 import { Strike, StrikeOptions } from '@tiptap/extension-strike';
 import { Table, TableOptions } from '@tiptap/extension-table';
@@ -30,7 +30,13 @@ import { TableHeader, TableHeaderOptions } from '@tiptap/extension-table-header'
 import { TableRow, TableRowOptions } from '@tiptap/extension-table-row';
 import { Text } from '@tiptap/extension-text';
 import { TextAlign, TextAlignOptions } from '@tiptap/extension-text-align';
-import { Dropcursor, DropcursorOptions, Gapcursor, UndoRedo, UndoRedoOptions } from '@tiptap/extensions';
+import {
+  Dropcursor,
+  DropcursorOptions,
+  Gapcursor,
+  UndoRedo,
+  UndoRedoOptions
+} from '@tiptap/extensions';
 import { Markdown, MarkdownOptions } from '../markdown';
 
 export interface StarterKitOptions {
