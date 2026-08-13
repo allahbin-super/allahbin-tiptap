@@ -61,15 +61,22 @@ function focusTrailingBlockOnEmptyClick(view: EditorView, event: MouseEvent): bo
   return true;
 }
 
+export type NotionContentMode = 'html' | 'md' | 'json';
+
 export type NotionLikeEditorProps = {
-  /** Markdown 内容 */
-  value?: string;
+  /**
+   * @description 回传 / 赋值模式
+   * @default "md"
+   */
+  mode?: NotionContentMode;
+  /** 富文本的值：html / md 为字符串，json 为对象 */
+  value?: any;
   placeholder?: string;
   editable?: boolean;
   className?: string;
   style?: React.CSSProperties;
   imageUploader?: UploaderFunc;
-  onChange?: (markdown: string, editor: Editor) => void;
+  onChange?: (value: any, editor: Editor) => void;
   onReady?: (editor: Editor) => void;
 };
 
@@ -78,6 +85,37 @@ const getMarkdown = (editor: Editor) => {
     markdown?: { getMarkdown?: () => string };
   };
   return markdownStorage.markdown?.getMarkdown?.() || '';
+};
+
+const getValueByMode = (editor: Editor, mode: NotionContentMode) => {
+  if (mode === 'json') {
+    return editor.getJSON();
+  }
+  if (mode === 'html') {
+    return editor.getHTML();
+  }
+  return getMarkdown(editor);
+};
+
+const isSameValue = (a: any, b: any, mode: NotionContentMode) => {
+  if (mode === 'json') {
+    return JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+  }
+  return (a ?? '') === (b ?? '');
+};
+
+const normalizeContent = (value: any, mode: NotionContentMode) => {
+  if (value === undefined || value === null || value === '') {
+    return mode === 'json' ? { type: 'doc', content: [{ type: 'paragraph' }] } : '';
+  }
+  if (mode === 'json' && typeof value === 'string') {
+    try {
+      return JSON.parse(value);
+    } catch {
+      return { type: 'doc', content: [{ type: 'paragraph' }] };
+    }
+  }
+  return value;
 };
 
 const BlockShortcuts = Extension.create({
@@ -99,8 +137,9 @@ const BlockShortcuts = Extension.create({
   }
 });
 
-/** Notion 风格 + Markdown 的块编辑器 */
+/** Notion 风格块编辑器，支持 html / md / json 读写 */
 export const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
+  mode = 'md',
   value = '',
   placeholder = '输入 / 插入内容',
   editable = true,
@@ -112,16 +151,18 @@ export const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
 }) => {
   const onChangeRef = useRef(onChange);
   const onReadyRef = useRef(onReady);
-  const lastMarkdownRef = useRef(value);
+  const modeRef = useRef(mode);
+  const lastValueRef = useRef(value);
   const [imageUrlOpen, setImageUrlOpen] = useState(false);
   const [imageUrl, setImageUrl] = useState('');
   onChangeRef.current = onChange;
   onReadyRef.current = onReady;
+  modeRef.current = mode;
 
   const editor = useEditor({
     immediatelyRender: false,
     editable,
-    content: value,
+    content: normalizeContent(value, mode),
     extensions: [
       StarterKit.configure({
         image: false,
@@ -170,12 +211,13 @@ export const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
     },
     onCreate: ({ editor: currentEditor }) => {
       currentEditor.storage.imageUploader.requestUrlInsert = () => setImageUrlOpen(true);
+      lastValueRef.current = getValueByMode(currentEditor, modeRef.current);
       onReadyRef.current?.(currentEditor);
     },
     onUpdate: ({ editor: currentEditor }) => {
-      const markdown = getMarkdown(currentEditor);
-      lastMarkdownRef.current = markdown;
-      onChangeRef.current?.(markdown, currentEditor);
+      const nextValue = getValueByMode(currentEditor, modeRef.current);
+      lastValueRef.current = nextValue;
+      onChangeRef.current?.(nextValue, currentEditor);
     }
   });
 
@@ -198,12 +240,13 @@ export const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
     if (!editor || editor.isDestroyed || value === undefined) {
       return;
     }
-    if (value === lastMarkdownRef.current) {
+    if (isSameValue(value, lastValueRef.current, mode)) {
       return;
     }
-    lastMarkdownRef.current = value || '';
-    editor.commands.setContent(value || '', { emitUpdate: false });
-  }, [editor, value]);
+    const content = normalizeContent(value, mode);
+    lastValueRef.current = mode === 'json' ? content : value || '';
+    editor.commands.setContent(content, { emitUpdate: false });
+  }, [editor, value, mode]);
 
   if (!editor) {
     return <div className="atiptap-notion-loading">编辑器加载中...</div>;

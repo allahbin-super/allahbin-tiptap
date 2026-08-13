@@ -3,6 +3,7 @@ export type { IATiptapProps } from './ATiptapEdit';
 
 export { default as ANotion } from './ANotion';
 export type { IANotionProps } from './ANotion';
+export type { NotionContentMode } from './notion-like';
 
 export type { IContent2, IMark, ITiptapJson } from './tide';
 

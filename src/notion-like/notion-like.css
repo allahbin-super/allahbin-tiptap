@@ -133,16 +133,28 @@
   gap: 8px;
 }
 
+.atiptap-notion .ProseMirror ul[data-type='taskList'] li > label {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  height: 1.5714285714285714em;
+  margin: 0;
+  user-select: none;
+}
+
 .atiptap-notion .ProseMirror ul[data-type='taskList'] li input[type='checkbox'] {
   width: 16px;
   height: 16px;
-  margin-top: 0.4em;
+  margin: 0;
   accent-color: var(--atiptap-color-primary);
   cursor: pointer;
 }
 
-.atiptap-notion .ProseMirror ul[data-type='taskList'] li label {
-  margin-top: 0.35em;
+.atiptap-notion .ProseMirror ul[data-type='taskList'] li > div {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .atiptap-notion .ProseMirror blockquote {

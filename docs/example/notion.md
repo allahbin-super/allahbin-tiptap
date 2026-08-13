@@ -1,5 +1,6 @@
 ---
 title: ANotion
+order: 3
 ---
 
 # ANotion
@@ -19,5 +20,9 @@ import { ANotion, mockImgUploader } from '@allahbin/tiptap';
 - **表格**：斜杠插入 3×3；悬停出行 / 列手柄（插入、移动、排序、配色、对齐）；选中单元格可合并拆分与四角扩选；底部 / 右侧可加行加列；可拖拽列宽
 - **块操作**：转为标题/列表/引用/代码块/表格/分割线；复制 Markdown；`Mod+D` 创建副本；窄屏上移 / 下移；表格块可适应宽度 / 清空
 - **代码块**：lowlight 语法高亮；复制内容为 Markdown
+
+更多示例见侧边栏：[数据模式](./notion-mode)、[表单联动](./notion-form)。
+
+## 基础用法
 
 <code src="../../example/notion.tsx"></code>

@@ -98,6 +98,7 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "@umijs/lint": "^4.7.4",
+    "antd": "^5.29.3",
     "dumi": "^2.4.48",
     "eslint": "^8.57.0",
     "father": "^4.6.35",
