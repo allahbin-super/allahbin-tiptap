@@ -81,6 +81,7 @@ export type NotionLikeEditorProps = {
   onReady?: (editor: Editor) => void;
   /**
    * 是否显示头部快捷操作区（撤销、标题、列表、格式、对齐、图片等）
+   * 可编辑时默认显示，只读模式不显示
    * @default true
    */
   showToolbar?: boolean;
@@ -281,7 +282,7 @@ export const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
 
   return (
     <div className={rootClassName} style={style}>
-      {showToolbar ? <NotionToolbar editor={editor} /> : null}
+      {showToolbar && editable ? <NotionToolbar editor={editor} /> : null}
       <BlockDragHandle editor={editor} />
       <FloatingToolbar editor={editor} />
       <TableHandle editor={editor} />

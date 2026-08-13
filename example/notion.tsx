@@ -50,7 +50,7 @@ const ANotionBasicDemo = () => {
   return (
     <div style={{ padding: 16, color: 'rgba(0, 0, 0, 0.88)' }}>
       <p style={{ color: 'rgba(0, 0, 0, 0.45)', marginBottom: 12 }}>
-        带边框的块编辑器，头部可快捷排版。也可关掉工具栏，只保留斜杠、划词和块拖拽。
+        可编辑时默认带头部操作区，只读模式自动隐藏。也可手动关掉工具栏，只保留斜杠、划词和块拖拽。
       </p>
       <button type="button" style={buttonStyle} onClick={() => setEditable(v => !v)}>
         {editable ? '切换为只读' : '切换为编辑'}

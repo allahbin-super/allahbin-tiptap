@@ -113,6 +113,7 @@ export type IATiptapProps = Omit<EditorRenderProps, 'editor'> & {
   bordered?: boolean;
   /**
    * Notion 块编辑器是否显示头部快捷操作区
+   * 可编辑时默认显示，只读模式不显示
    * @default true
    */
   showToolbar?: boolean;

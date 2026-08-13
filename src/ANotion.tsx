@@ -8,7 +8,7 @@ import {
 export type { NotionContentMode };
 export type IANotionProps = NotionLikeEditorProps;
 
-/** Notion 风格块编辑器。默认带边框和头部快捷操作区，可用 showToolbar / bordered 关闭 */
+/** Notion 风格块编辑器。默认可编辑时带边框和头部操作区，只读模式不显示操作区 */
 const ANotion: React.FC<IANotionProps> = props => {
   return <NotionLikeEditor {...props} />;
 };
