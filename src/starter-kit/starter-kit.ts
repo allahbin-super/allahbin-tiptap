@@ -2,10 +2,11 @@ import { Extension, Extensions } from '@tiptap/core';
 import { Blockquote, BlockquoteOptions } from '@tiptap/extension-blockquote';
 import { Bold, BoldOptions } from '@tiptap/extension-bold';
 import { Code, CodeOptions } from '@tiptap/extension-code';
-import { CodeBlock, CodeBlockOptions } from '@tiptap/extension-code-block';
+import { CodeBlockLowlight, CodeBlockLowlightOptions } from '@tiptap/extension-code-block-lowlight';
 import { Document } from '@tiptap/extension-document';
 import { HardBreak, HardBreakOptions } from '@tiptap/extension-hard-break';
 import { Heading, HeadingOptions } from '@tiptap/extension-heading';
+import { Highlight, HighlightOptions } from '@tiptap/extension-highlight';
 import { HorizontalRule, HorizontalRuleOptions } from '@tiptap/extension-horizontal-rule';
 import { Image, ImageOptions } from '@tiptap/extension-image';
 import { Italic, ItalicOptions } from '@tiptap/extension-italic';
@@ -30,6 +31,7 @@ import { TableHeader, TableHeaderOptions } from '@tiptap/extension-table-header'
 import { TableRow, TableRowOptions } from '@tiptap/extension-table-row';
 import { Text } from '@tiptap/extension-text';
 import { TextAlign, TextAlignOptions } from '@tiptap/extension-text-align';
+import { Underline, UnderlineOptions } from '@tiptap/extension-underline';
 import {
   Dropcursor,
   DropcursorOptions,
@@ -37,7 +39,10 @@ import {
   UndoRedo,
   UndoRedoOptions
 } from '@tiptap/extensions';
+import { common, createLowlight } from 'lowlight';
 import { Markdown, MarkdownOptions } from '../markdown';
+
+const lowlight = createLowlight(common);
 
 export interface StarterKitOptions {
   commands: false;
@@ -50,6 +55,8 @@ export interface StarterKitOptions {
   bold: Partial<BoldOptions> | false;
   italic: Partial<ItalicOptions> | false;
   strike: Partial<StrikeOptions> | false;
+  underline: Partial<UnderlineOptions> | false;
+  highlight: Partial<HighlightOptions> | false;
   code: Partial<CodeOptions> | false;
   link: Partial<LinkOptions> | false;
   heading: Partial<HeadingOptions> | false;
@@ -67,7 +74,7 @@ export interface StarterKitOptions {
   tableRow: Partial<TableRowOptions>;
   tableCell: Partial<TableCellOptions>;
   tableHeader: Partial<TableHeaderOptions>;
-  codeBlock: Partial<CodeBlockOptions> | false;
+  codeBlock: Partial<CodeBlockLowlightOptions> | false;
   image: Partial<ImageOptions> | false;
   emoji: Record<string, any> | false;
   history: Partial<UndoRedoOptions> | false;
@@ -116,6 +123,19 @@ export const StarterKit = Extension.create<StarterKitOptions>({
 
     if (this.options.strike !== false) {
       extensions.push(Strike.configure(this.options.strike));
+    }
+
+    if (this.options.underline !== false) {
+      extensions.push(Underline.configure(this.options.underline));
+    }
+
+    if (this.options.highlight !== false) {
+      extensions.push(
+        Highlight.configure({
+          multicolor: true,
+          ...this.options.highlight
+        })
+      );
     }
 
     if (this.options.code !== false) {
@@ -171,12 +191,22 @@ export const StarterKit = Extension.create<StarterKitOptions>({
     }
 
     if (this.options.codeBlock !== false) {
-      extensions.push(CodeBlock.configure(this.options.codeBlock));
+      extensions.push(
+        CodeBlockLowlight.configure({
+          lowlight,
+          ...this.options.codeBlock
+        })
+      );
       tableCellContent.push('codeBlock');
     }
 
     if (this.options.image !== false) {
-      extensions.push(Image.configure(this.options.image));
+      extensions.push(
+        Image.configure({
+          allowBase64: true,
+          ...this.options.image
+        })
+      );
       tableCellContent.push('image');
     }
 
@@ -184,7 +214,13 @@ export const StarterKit = Extension.create<StarterKitOptions>({
       const TableCellExtension = TableCell.extend({
         content: `(${tableCellContent.join(' | ')})+`
       });
-      extensions.push(Table.configure(this.options.table));
+      extensions.push(
+        Table.configure({
+          resizable: true,
+          cellMinWidth: 80,
+          ...this.options.table
+        })
+      );
       extensions.push(TableRow.configure(this.options.tableRow));
       extensions.push(TableCellExtension.configure(this.options.tableCell));
       extensions.push(TableHeader.configure(this.options.tableHeader));
@@ -209,7 +245,7 @@ export const StarterKit = Extension.create<StarterKitOptions>({
           breaks: true,
           tightLists: true,
           paste: true,
-          copy: false,
+          copy: true,
           ...this.options.markdown
         })
       );

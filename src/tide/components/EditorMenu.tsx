@@ -4,9 +4,20 @@ import { ATailBar } from '../../extensions/ATailBar';
 import { ATitleBar } from '../../extensions/ATitleBar';
 import { AWenHaoBar } from '../../extensions/AWenHaoBar';
 import TextButton from '../../extensions/TextButton';
+import { insertImageFiles, pickLocalImage } from '../../image-upload';
 import { MenuBar } from '../../menubar';
+import '../../notion-like/notion-like.css';
+import { LinkPopover } from '../../ui/LinkPopover';
 import type { TideEditor } from '../TideEditor';
 import { useEditorContext } from '../context/EditorContext';
+
+const HIGHLIGHT_COLORS = [
+  { label: '黄', value: '#fff1b8' },
+  { label: '绿', value: '#d9f7be' },
+  { label: '蓝', value: '#bae0ff' },
+  { label: '红', value: '#ffccc7' },
+  { label: '紫', value: '#efdbff' }
+];
 
 export const EditorMenu: React.FC<{
   editor: TideEditor | null;
@@ -17,9 +28,10 @@ export const EditorMenu: React.FC<{
 }> = ({ editor, disabledMenu = false, menuClassName, menuStyle, onFullscreenChange }) => {
   const { fullscreen, editable } = useEditorContext();
   const [resourceInput, setResourceInput] = useState<{
-    type: 'link' | 'image';
+    type: 'image';
     value: string;
   } | null>(null);
+  const [highlightOpen, setHighlightOpen] = useState(false);
   const resourceInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -31,12 +43,7 @@ export const EditorMenu: React.FC<{
       return;
     }
 
-    const value = resourceInput.value.trim();
-    if (resourceInput.type === 'link') {
-      editor.chain().focus().extendMarkRange('link').setLink({ href: value }).run();
-    } else {
-      editor.chain().focus().setImage({ src: value }).run();
-    }
+    editor.chain().focus().setImage({ src: resourceInput.value.trim() }).run();
     setResourceInput(null);
   };
 
@@ -57,7 +64,8 @@ export const EditorMenu: React.FC<{
       blockquote,
       horizontalRule
     } = editor.state.schema.nodes;
-    const { bold, italic, strike, link, code } = editor.state.schema.marks;
+    const { bold, italic, strike, link, code, underline, highlight } = editor.state.schema.marks;
+    const canAlign = editor.can().setTextAlign?.('left');
     return [
       [
         editor.menuEnableUndoRedo && (
@@ -99,6 +107,54 @@ export const EditorMenu: React.FC<{
             删除线
           </TextButton>
         ),
+        underline && (
+          <TextButton
+            key="underline"
+            onClick={() => editor.chain().focus().toggleUnderline().run()}
+            isActive={editor.isActive('underline')}
+          >
+            下划线
+          </TextButton>
+        ),
+        highlight && (
+          <span key="highlight" className="atiptap-notion-highlight tide-menu-highlight">
+            <TextButton
+              onClick={() => setHighlightOpen(open => !open)}
+              isActive={editor.isActive('highlight') || highlightOpen}
+            >
+              高亮
+            </TextButton>
+            {highlightOpen ? (
+              <div className="atiptap-notion-highlight__panel">
+                {HIGHLIGHT_COLORS.map(color => (
+                  <button
+                    key={color.value}
+                    type="button"
+                    title={color.label}
+                    className="atiptap-notion-highlight__swatch"
+                    style={{ background: color.value }}
+                    onMouseDown={event => event.preventDefault()}
+                    onClick={() => {
+                      editor.chain().focus().toggleHighlight({ color: color.value }).run();
+                      setHighlightOpen(false);
+                    }}
+                  />
+                ))}
+                <button
+                  type="button"
+                  className="atiptap-notion-highlight__clear"
+                  onMouseDown={event => event.preventDefault()}
+                  onClick={() => {
+                    editor.chain().focus().unsetHighlight().run();
+                    setHighlightOpen(false);
+                  }}
+                >
+                  清除
+                </button>
+              </div>
+            ) : null}
+          </span>
+        ),
         code && (
           <TextButton
             key="code"
@@ -106,6 +162,33 @@ export const EditorMenu: React.FC<{
             isActive={editor.isActive('code')}
           >
             行内代码
+          </TextButton>
+        ),
+        canAlign && (
+          <TextButton
+            key="alignLeft"
+            onClick={() => editor.chain().focus().setTextAlign('left').run()}
+            isActive={editor.isActive({ textAlign: 'left' })}
+          >
+            左对齐
+          </TextButton>
+        ),
+        canAlign && (
+          <TextButton
+            key="alignCenter"
+            onClick={() => editor.chain().focus().setTextAlign('center').run()}
+            isActive={editor.isActive({ textAlign: 'center' })}
+          >
+            居中
+          </TextButton>
+        ),
+        canAlign && (
+          <TextButton
+            key="alignRight"
+            onClick={() => editor.chain().focus().setTextAlign('right').run()}
+            isActive={editor.isActive({ textAlign: 'right' })}
+          >
+            右对齐
           </TextButton>
         )
       ],
@@ -158,22 +241,21 @@ export const EditorMenu: React.FC<{
         )
       ],
       [
-        link && (
-          <TextButton
-            key="link"
-            onClick={() => {
-              setResourceInput({
-                type: 'link',
-                value: editor.getAttributes('link').href || ''
-              });
-            }}
-            isActive={editor.isActive('link')}
-          >
-            链接
-          </TextButton>
-        ),
+        link && <LinkPopover key="link" editor={editor} compact={false} />,
         image && (
-          <TextButton key="image" onClick={() => setResourceInput({ type: 'image', value: '' })}>
+          <TextButton
+            key="image"
+            onClick={() => {
+              const upload = editor.storage.imageUploader?.upload;
+              if (upload) {
+                pickLocalImage(file => {
+                  void insertImageFiles(editor, [file], upload);
+                });
+                return;
+              }
+              setResourceInput({ type: 'image', value: '' });
+            }}
+          >
             图片
           </TextButton>
         ),
@@ -238,7 +320,14 @@ export const EditorMenu: React.FC<{
           {index < items.length - 1 && <span className="tide-menu-bar-divider" />}
         </React.Fragment>
       ));
-  }, [editor, editable, fullscreen, editor?.menuEnableUndoRedo, editor?.menuEnableFullscreen]);
+  }, [
+    editor,
+    editable,
+    fullscreen,
+    highlightOpen,
+    editor?.menuEnableUndoRedo,
+    editor?.menuEnableFullscreen
+  ]);
 
   const handleButtonClick = (event: {
     stopPropagation: () => void;
@@ -266,7 +355,7 @@ export const EditorMenu: React.FC<{
       {resourceInput && (
         <div className="tide-menu-resource-input" role="dialog" aria-label="资源地址输入">
           <label>
-            {resourceInput.type === 'link' ? '链接地址' : '图片地址'}
+            图片地址
             <input
               ref={resourceInputRef}
               type="url"

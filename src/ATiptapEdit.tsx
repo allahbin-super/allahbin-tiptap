@@ -10,6 +10,7 @@ import { StarterKit, StarterKitOptions } from './starter-kit';
 import { ParseOptions } from '@tiptap/pm/model';
 import { EditorProps } from '@tiptap/pm/view';
 import { ALink } from './a-link';
+import { createImageUploadExtensions } from './image-upload';
 import { EditorRender, EditorRenderProps, TideEditor, useEditor } from './tide';
 
 export type UploaderFunc = (
@@ -149,6 +150,7 @@ const ATiptapEdit: React.FC<IATiptapProps> = ({
   simple = false,
   renderMode = simple ? 'normal' : 'gov',
   simpleConfigure: userSimpleConfigure,
+  imageUploader,
   ...props
 }) => {
   // 编辑器是否初始化完成
@@ -174,16 +176,19 @@ const ATiptapEdit: React.FC<IATiptapProps> = ({
   };
 
   const finalSimpleConfigure = simple ? { ...defaultSimpleConfigure, ...userSimpleConfigure } : {};
+  const starterKitOptions = {
+    link: false as const,
+    ...(simple ? finalSimpleConfigure : {}),
+    ...starterKitOpt
+  };
+  const imageEnabled = starterKitOptions.image !== false;
 
   const editor = useEditor({
     extensions: [
       ...(simple ? [] : [ATail, AWenHao, ATitle]),
       ALink,
-      StarterKit.configure({
-        link: false,
-        ...(simple ? finalSimpleConfigure : {}),
-        ...starterKitOpt
-      })
+      StarterKit.configure(starterKitOptions),
+      ...(imageEnabled ? createImageUploadExtensions(imageUploader) : [])
     ],
     onChange: (doc, editorNow) => {
       let strValue: any;
@@ -208,6 +213,12 @@ const ATiptapEdit: React.FC<IATiptapProps> = ({
       setIsReady(true);
     }
   });
+
+  useEffect(() => {
+    if (editor?.storage.imageUploader) {
+      editor.storage.imageUploader.upload = imageUploader;
+    }
+  }, [editor, imageUploader]);
 
   useEffect(() => {
     if (editor) {

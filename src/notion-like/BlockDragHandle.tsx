@@ -4,15 +4,23 @@ import type { Node as ProseMirrorNode } from '@tiptap/pm/model';
 import type { Editor } from '@tiptap/react';
 import { useEditorState } from '@tiptap/react';
 import {
+  AlignCenter,
+  AlignLeft,
+  AlignRight,
   CheckSquare,
+  ChevronDown,
+  ChevronUp,
   Code2,
   Copy,
+  Download,
   GripVertical,
   Heading1,
   Heading2,
   Heading3,
+  Image as ImageIcon,
   List,
   ListOrdered,
+  Maximize2,
   Minus,
   Plus,
   Quote,
@@ -23,13 +31,18 @@ import {
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
+  canMoveBlock,
+  copyNodeMarkdown,
   deleteNode,
   duplicateNode,
   insertSlashAtNode,
   isTextSelectionActive,
+  moveBlock,
   selectBlockNode,
   setEditorMeta
 } from './block-actions';
+import { downloadSelectedImage } from './image';
+import { clearEntireTable, fitTableToWidth, setTableAlign } from './table';
 
 type BlockIcon = React.ComponentType<{ className?: string; size?: number }>;
 
@@ -111,6 +124,9 @@ function getBlockTypeIcon(node: ProseMirrorNode | null): BlockIcon | null {
       return Code2;
     case 'table':
       return Table;
+    case 'image':
+    case 'imageUpload':
+      return ImageIcon;
     case 'horizontalRule':
       return Minus;
     default:
@@ -196,6 +212,21 @@ const turnIntoItems: TurnIntoItem[] = [
     icon: Code2,
     isActive: editor => editor.isActive('codeBlock'),
     run: editor => editor.chain().focus().toggleCodeBlock().run()
+  },
+  {
+    key: 'table',
+    label: '表格',
+    icon: Table,
+    isActive: editor => editor.isActive('table'),
+    run: editor =>
+      editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+  },
+  {
+    key: 'divider',
+    label: '分割线',
+    icon: Minus,
+    isActive: editor => editor.isActive('horizontalRule'),
+    run: editor => editor.chain().focus().setHorizontalRule().run()
   }
 ];
 
@@ -229,8 +260,8 @@ export const BlockDragHandle: React.FC<{ editor: Editor | null }> = ({ editor })
     if (!editor) {
       return;
     }
-    setEditorMeta(editor, 'lockDragHandle', menuOpen);
-  }, [editor, menuOpen]);
+    setEditorMeta(editor, 'lockDragHandle', menuOpen || isMobile);
+  }, [editor, menuOpen, isMobile]);
 
   useEffect(() => {
     if (!editor || nodePos < 0) {
@@ -329,7 +360,164 @@ export const BlockDragHandle: React.FC<{ editor: Editor | null }> = ({ editor })
 
   const TypeIcon = getBlockTypeIcon(node);
   const isEmptyParagraph = node?.type.name === 'paragraph' && node.content.size === 0;
-  const hidden = isMobile || dragging || Boolean(selectionState?.hasTextSelection);
+  const hidden = dragging || Boolean(selectionState?.hasTextSelection);
+  const canMoveUp = canMoveBlock(editor, -1, nodePos);
+  const canMoveDown = canMoveBlock(editor, 1, nodePos);
+
+  const blockMenu = (
+    <div
+      ref={menuRef}
+      className="atiptap-notion-drag-menu"
+      role="menu"
+      style={{ top: menuPos.top, left: menuPos.left }}
+    >
+      <div className="atiptap-notion-drag-menu__label">转为</div>
+      {turnIntoItems.map(item => {
+        const ItemIcon = item.icon;
+        return (
+          <button
+            key={item.key}
+            type="button"
+            className="atiptap-notion-drag-menu__item"
+            data-active={item.isActive(editor) ? 'true' : 'false'}
+            onClick={() => runTurnInto(item)}
+          >
+            <ItemIcon size={15} />
+            {item.label}
+          </button>
+        );
+      })}
+      <div className="atiptap-notion-drag-menu__divider" />
+      {node?.type.name === 'image' ? (
+        <button
+          type="button"
+          className="atiptap-notion-drag-menu__item"
+          onClick={() => {
+            if (nodePos >= 0) {
+              selectBlockNode(editor, nodePos);
+            }
+            void downloadSelectedImage(editor);
+            closeMenu();
+          }}
+        >
+          <Download size={15} />
+          下载图片
+        </button>
+      ) : null}
+      {node?.type.name === 'table' ? (
+        <>
+          <button
+            type="button"
+            className="atiptap-notion-drag-menu__item"
+            onClick={() => {
+              if (nodePos >= 0) {
+                selectBlockNode(editor, nodePos);
+              }
+              setTableAlign(editor, 'left');
+              closeMenu();
+            }}
+          >
+            <AlignLeft size={15} />
+            表格居左
+          </button>
+          <button
+            type="button"
+            className="atiptap-notion-drag-menu__item"
+            onClick={() => {
+              if (nodePos >= 0) {
+                selectBlockNode(editor, nodePos);
+              }
+              setTableAlign(editor, 'center');
+              closeMenu();
+            }}
+          >
+            <AlignCenter size={15} />
+            表格居中
+          </button>
+          <button
+            type="button"
+            className="atiptap-notion-drag-menu__item"
+            onClick={() => {
+              if (nodePos >= 0) {
+                selectBlockNode(editor, nodePos);
+              }
+              setTableAlign(editor, 'right');
+              closeMenu();
+            }}
+          >
+            <AlignRight size={15} />
+            表格居右
+          </button>
+          <button
+            type="button"
+            className="atiptap-notion-drag-menu__item"
+            onClick={() => {
+              if (nodePos >= 0) {
+                selectBlockNode(editor, nodePos);
+              }
+              fitTableToWidth(editor);
+              closeMenu();
+            }}
+          >
+            <Maximize2 size={15} />
+            适应宽度
+          </button>
+          <button
+            type="button"
+            className="atiptap-notion-drag-menu__item"
+            onClick={() => {
+              if (nodePos >= 0) {
+                selectBlockNode(editor, nodePos);
+              }
+              clearEntireTable(editor, nodePos);
+              closeMenu();
+            }}
+          >
+            清空表格
+          </button>
+        </>
+      ) : null}
+      <button
+        type="button"
+        className="atiptap-notion-drag-menu__item"
+        onClick={() => {
+          copyNodeMarkdown(editor, nodePos);
+          closeMenu();
+        }}
+      >
+        <Copy size={15} />
+        复制 Markdown
+      </button>
+      <button
+        type="button"
+        className="atiptap-notion-drag-menu__item"
+        onClick={() => {
+          if (nodePos >= 0) {
+            selectBlockNode(editor, nodePos);
+          }
+          duplicateNode(editor);
+          closeMenu();
+        }}
+      >
+        <Copy size={15} />
+        创建副本
+      </button>
+      <button
+        type="button"
+        className="atiptap-notion-drag-menu__item atiptap-notion-drag-menu__item--danger"
+        onClick={() => {
+          if (nodePos >= 0) {
+            selectBlockNode(editor, nodePos);
+          }
+          deleteNode(editor);
+          closeMenu();
+        }}
+      >
+        <Trash2 size={15} />
+        删除
+      </button>
+    </div>
+  );
 
   return (
     <DragHandle
@@ -343,12 +531,65 @@ export const BlockDragHandle: React.FC<{ editor: Editor | null }> = ({ editor })
     >
       <div
         className="atiptap-notion-drag-group"
-        style={{
-          '--drag-handle-main-axis-offset': `${DRAG_HANDLE_GAP}px`,
-          ...(hidden ? { opacity: 0, pointerEvents: 'none' } : {})
-        } as React.CSSProperties}
+        style={
+          {
+            '--drag-handle-main-axis-offset': `${DRAG_HANDLE_GAP}px`,
+            ...(hidden ? { opacity: 0, pointerEvents: 'none' } : {})
+          } as React.CSSProperties
+        }
       >
-        {isEmptyParagraph ? (
+        {isMobile ? (
+          <div className="atiptap-notion-move">
+            <button
+              type="button"
+              className="atiptap-notion-drag-trigger atiptap-notion-drag-trigger--add"
+              title="上移"
+              disabled={!canMoveUp}
+              onMouseDown={event => event.preventDefault()}
+              onClick={() => moveBlock(editor, -1, nodePos)}
+            >
+              <ChevronUp size={15} />
+            </button>
+            <button
+              type="button"
+              className="atiptap-notion-drag-trigger atiptap-notion-drag-trigger--add"
+              title="下移"
+              disabled={!canMoveDown}
+              onMouseDown={event => event.preventDefault()}
+              onClick={() => moveBlock(editor, 1, nodePos)}
+            >
+              <ChevronDown size={15} />
+            </button>
+            {isEmptyParagraph ? (
+              <button
+                type="button"
+                className="atiptap-notion-drag-trigger atiptap-notion-drag-trigger--add"
+                title="插入块"
+                onMouseDown={event => event.preventDefault()}
+                onClick={() => insertSlashAtNode(editor, node, nodePos)}
+              >
+                <Plus size={15} />
+              </button>
+            ) : (
+              <button
+                ref={triggerRef}
+                type="button"
+                className="atiptap-notion-drag-trigger atiptap-notion-drag-trigger--add"
+                title="块操作"
+                data-open={menuOpen ? 'true' : 'false'}
+                onMouseDown={event => {
+                  event.preventDefault();
+                  if (nodePos >= 0) {
+                    selectBlockNode(editor, nodePos);
+                  }
+                }}
+                onClick={openMenu}
+              >
+                {TypeIcon ? <TypeIcon size={15} /> : <GripVertical size={15} />}
+              </button>
+            )}
+          </div>
+        ) : isEmptyParagraph ? (
           <button
             type="button"
             className="atiptap-notion-drag-trigger atiptap-notion-drag-trigger--add"
@@ -379,63 +620,7 @@ export const BlockDragHandle: React.FC<{ editor: Editor | null }> = ({ editor })
           </button>
         )}
       </div>
-      {menuOpen
-        ? createPortal(
-            <div
-              ref={menuRef}
-              className="atiptap-notion-drag-menu"
-              role="menu"
-              style={{ top: menuPos.top, left: menuPos.left }}
-            >
-              <div className="atiptap-notion-drag-menu__label">转为</div>
-              {turnIntoItems.map(item => {
-                const ItemIcon = item.icon;
-                return (
-                  <button
-                    key={item.key}
-                    type="button"
-                    className="atiptap-notion-drag-menu__item"
-                    data-active={item.isActive(editor) ? 'true' : 'false'}
-                    onClick={() => runTurnInto(item)}
-                  >
-                    <ItemIcon size={15} />
-                    {item.label}
-                  </button>
-                );
-              })}
-              <div className="atiptap-notion-drag-menu__divider" />
-              <button
-                type="button"
-                className="atiptap-notion-drag-menu__item"
-                onClick={() => {
-                  if (nodePos >= 0) {
-                    selectBlockNode(editor, nodePos);
-                  }
-                  duplicateNode(editor);
-                  closeMenu();
-                }}
-              >
-                <Copy size={15} />
-                复制块
-              </button>
-              <button
-                type="button"
-                className="atiptap-notion-drag-menu__item atiptap-notion-drag-menu__item--danger"
-                onClick={() => {
-                  if (nodePos >= 0) {
-                    selectBlockNode(editor, nodePos);
-                  }
-                  deleteNode(editor);
-                  closeMenu();
-                }}
-              >
-                <Trash2 size={15} />
-                删除
-              </button>
-            </div>,
-            document.body
-          )
-        : null}
+      {menuOpen ? createPortal(blockMenu, document.body) : null}
     </DragHandle>
   );
 };

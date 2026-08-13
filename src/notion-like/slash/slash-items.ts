@@ -5,6 +5,7 @@ import {
   Heading1,
   Heading2,
   Heading3,
+  Image as ImageIcon,
   List,
   ListOrdered,
   Minus,
@@ -25,6 +26,7 @@ type SlashItemType =
   | 'taskList'
   | 'quote'
   | 'codeBlock'
+  | 'image'
   | 'table'
   | 'divider';
 
@@ -93,6 +95,13 @@ const itemMeta: Record<
     subtext: '多行代码',
     keywords: ['code', 'pre', '代码'],
     badge: Code2,
+    group: '插入'
+  },
+  image: {
+    title: '图片',
+    subtext: '上传占位，可选文件或拖放',
+    keywords: ['image', 'img', 'picture', '图片'],
+    badge: ImageIcon,
     group: '插入'
   },
   table: {
@@ -170,6 +179,17 @@ const itemActions: Record<
     check: editor => isNodeInSchema('codeBlock', editor),
     action: (editor, range) => {
       editor.chain().focus().deleteRange(range).toggleCodeBlock().run();
+    }
+  },
+  image: {
+    check: editor => isNodeInSchema('imageUpload', editor) || isNodeInSchema('image', editor),
+    action: (editor, range) => {
+      editor.chain().focus().deleteRange(range).run();
+      if (editor.schema.nodes.imageUpload) {
+        editor.chain().focus().insertContent({ type: 'imageUpload' }).run();
+        return;
+      }
+      editor.storage.imageUploader?.requestUrlInsert?.();
     }
   },
   table: {

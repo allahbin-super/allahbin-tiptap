@@ -1,5 +1,5 @@
-import { NodeSelection, TextSelection } from '@tiptap/pm/state';
 import type { Node as ProseMirrorNode } from '@tiptap/pm/model';
+import { NodeSelection, TextSelection } from '@tiptap/pm/state';
 import type { Editor } from '@tiptap/react';
 
 export function setEditorMeta(editor: Editor, key: string, value: unknown) {
@@ -11,7 +11,9 @@ export function isTextSelectionActive(editor: Editor | null): boolean {
     return false;
   }
   const { selection } = editor.state;
-  return selection instanceof TextSelection && !selection.empty && !selection.$from.parent.type.spec.code;
+  return (
+    selection instanceof TextSelection && !selection.empty && !selection.$from.parent.type.spec.code
+  );
 }
 
 /** 选中当前块，便于转换 / 复制 / 删除命中正确节点 */
@@ -58,6 +60,29 @@ export function duplicateNode(editor: Editor | null): boolean {
   return false;
 }
 
+/** 把当前块的 Markdown 写入剪贴板 */
+export function copyNodeMarkdown(editor: Editor | null, nodePos?: number): boolean {
+  if (!editor) {
+    return false;
+  }
+  const info = getMovableBlock(editor, nodePos);
+  if (!info) {
+    return false;
+  }
+  const markdownStorage = editor.storage as {
+    markdown?: {
+      serializer?: { serialize: (node: ProseMirrorNode) => string };
+      getMarkdown?: () => string;
+    };
+  };
+  const text =
+    markdownStorage.markdown?.serializer?.serialize(info.node) ||
+    markdownStorage.markdown?.getMarkdown?.() ||
+    '';
+  void navigator.clipboard.writeText(text);
+  return Boolean(text);
+}
+
 export function deleteNode(editor: Editor | null): boolean {
   if (!editor || !editor.isEditable) {
     return false;
@@ -89,8 +114,97 @@ export function deleteNode(editor: Editor | null): boolean {
   return false;
 }
 
+const SKIP_MOVE_TYPES = ['tableRow', 'tableHeader', 'tableCell', 'listItem', 'taskItem'];
+
+function getMovableBlock(
+  editor: Editor,
+  nodePos?: number
+): { pos: number; node: ProseMirrorNode } | null {
+  const { selection, doc } = editor.state;
+  if (typeof nodePos === 'number' && nodePos >= 0) {
+    const node = doc.nodeAt(nodePos);
+    if (node) {
+      return { pos: nodePos, node };
+    }
+  }
+
+  const $from = selection.$from;
+  for (let depth = $from.depth; depth > 0; depth -= 1) {
+    const node = $from.node(depth);
+    if (!node.isBlock || SKIP_MOVE_TYPES.includes(node.type.name)) {
+      continue;
+    }
+    return { pos: $from.before(depth), node };
+  }
+  return null;
+}
+
+export function canMoveBlock(editor: Editor | null, direction: -1 | 1, nodePos?: number): boolean {
+  if (!editor || !editor.isEditable) {
+    return false;
+  }
+  const info = getMovableBlock(editor, nodePos);
+  if (!info) {
+    return false;
+  }
+  try {
+    const $pos = editor.state.doc.resolve(info.pos);
+    const index = $pos.index();
+    return direction < 0 ? index > 0 : index < $pos.parent.childCount - 1;
+  } catch {
+    return false;
+  }
+}
+
+/** 将当前块上移 / 下移一个同级节点 */
+export function moveBlock(editor: Editor | null, direction: -1 | 1, nodePos?: number): boolean {
+  if (!editor || !editor.isEditable) {
+    return false;
+  }
+
+  const info = getMovableBlock(editor, nodePos);
+  if (!info) {
+    return false;
+  }
+
+  try {
+    const { pos, node } = info;
+    const tr = editor.state.tr;
+    const $pos = tr.doc.resolve(pos);
+    const parent = $pos.parent;
+    const index = $pos.index();
+
+    if (direction < 0 && index > 0) {
+      const prevSize = parent.child(index - 1).nodeSize;
+      const movedNode = node.type.create(node.attrs, node.content, node.marks);
+      tr.delete(pos, pos + node.nodeSize);
+      const insertPos = pos - prevSize;
+      tr.insert(insertPos, movedNode);
+      tr.setSelection(TextSelection.near(tr.doc.resolve(insertPos)));
+    } else if (direction > 0 && index < parent.childCount - 1) {
+      const nextSize = parent.child(index + 1).nodeSize;
+      const movedNode = node.type.create(node.attrs, node.content, node.marks);
+      tr.delete(pos, pos + node.nodeSize);
+      const insertPos = pos + nextSize;
+      tr.insert(insertPos, movedNode);
+      tr.setSelection(TextSelection.near(tr.doc.resolve(insertPos)));
+    } else {
+      return false;
+    }
+
+    editor.view.dispatch(tr.scrollIntoView());
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /** 在空段落内插入 `/`，触发斜杠菜单 */
-export function insertSlashAtNode(editor: Editor | null, node: ProseMirrorNode | null, nodePos: number): boolean {
+export function insertSlashAtNode(
+  editor: Editor | null,
+  node: ProseMirrorNode | null,
+  nodePos: number
+): boolean {
   if (!editor || !editor.isEditable || !node || nodePos < 0) {
     return false;
   }

@@ -1,6 +1,6 @@
 import { flip, FloatingPortal, offset, shift, size } from '@floating-ui/react';
 import { PluginKey } from '@tiptap/pm/state';
-import type { Range } from '@tiptap/react';
+import type { Editor, Range } from '@tiptap/react';
 import {
   Suggestion,
   SuggestionPluginKey,

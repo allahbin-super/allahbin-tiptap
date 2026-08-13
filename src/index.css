@@ -270,3 +270,24 @@
   font-size: 12px;
   cursor: pointer;
 }
+
+.tide-menu-bar .atiptap-notion-link__trigger {
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
+  padding: 4px 8px;
+  height: auto;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.tide-menu-bar .atiptap-notion-link__trigger[data-active='true'] {
+  color: #1d4ed8;
+  border-color: #93c5fd;
+  background: #eff6ff;
+}
+
+.tide-menu-highlight {
+  position: relative;
+  display: inline-flex;
+}
