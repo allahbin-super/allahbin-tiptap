@@ -16,7 +16,7 @@ export function ImageNodeView({ editor, node, updateAttributes, getPos }: NodeVi
       src={node.attrs.src}
       alt={node.attrs.alt || ''}
       editor={editor}
-      align={node.attrs['data-align']}
+      align={node.attrs['data-align'] || 'center'}
       initialWidth={node.attrs.width}
       showCaption={node.attrs.showCaption}
       hasContent={node.content.size > 0}
@@ -48,7 +48,7 @@ const ResizableImage: React.FC<{
   editor,
   minWidth = 96,
   maxWidth = 800,
-  align = 'left',
+  align = 'center',
   initialWidth,
   showCaption = false,
   hasContent = false,
@@ -219,13 +219,15 @@ const ResizableImage: React.FC<{
             </>
           ) : null}
         </div>
-        {editor?.isEditable && shouldShowCaption ? (
-          <NodeViewContent
-            as="div"
-            className="atiptap-notion-image__caption"
-            data-placeholder="添加图片说明..."
-          />
-        ) : null}
+        <NodeViewContent
+          as="div"
+          className={
+            shouldShowCaption
+              ? 'atiptap-notion-image__caption'
+              : 'atiptap-notion-image__caption is-collapsed'
+          }
+          data-placeholder="添加图片说明..."
+        />
       </div>
     </NodeViewWrapper>
   );

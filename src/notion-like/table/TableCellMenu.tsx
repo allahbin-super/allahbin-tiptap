@@ -79,7 +79,7 @@ export const TableCellMenu: React.FC<{
         </button>
       ) : null}
       <div className="atiptap-notion-drag-menu__label">颜色</div>
-      <div className="atiptap-notion-highlight__panel" style={{ position: 'static' }}>
+      <div className="atiptap-notion-drag-menu__colors">
         {HIGHLIGHT_COLORS.map(color => (
           <button
             key={color.value}
@@ -129,6 +129,7 @@ export const TableCellMenu: React.FC<{
         ref={triggerRef}
         type="button"
         className="atiptap-notion-table-cellmenu"
+        data-open={open ? 'true' : 'false'}
         title="单元格操作"
         onMouseDown={event => event.preventDefault()}
         onClick={event => {
@@ -139,7 +140,7 @@ export const TableCellMenu: React.FC<{
           onOpenChange?.(next);
         }}
       >
-        <Grip size={12} />
+        <Grip size={16} />
       </button>
       {open ? createPortal(menu, document.body) : null}
     </>

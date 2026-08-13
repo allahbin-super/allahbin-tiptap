@@ -33,7 +33,7 @@ export const TableHandleMenu: React.FC<{
 }> = ({ editor, orientation, index, tablePos, onOpenChange }) => {
   const [open, setOpen] = useState(false);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
-  const triggerRef = useRef<HTMLButtonElement>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const isRow = orientation === 'row';
 
@@ -53,7 +53,7 @@ export const TableHandleMenu: React.FC<{
     return () => document.removeEventListener('pointerdown', onPointerDown, true);
   }, [open, onOpenChange]);
 
-  const openMenu = (event: React.MouseEvent) => {
+  const openMenu = (event: React.MouseEvent | React.KeyboardEvent) => {
     event.preventDefault();
     event.stopPropagation();
     if (typeof index === 'number' && typeof tablePos === 'number') {
@@ -149,7 +149,7 @@ export const TableHandleMenu: React.FC<{
         排序 Z-A
       </button>
       <div className="atiptap-notion-drag-menu__label">颜色</div>
-      <div className="atiptap-notion-highlight__panel" style={{ position: 'static' }}>
+      <div className="atiptap-notion-drag-menu__colors">
         {HIGHLIGHT_COLORS.map(color => (
           <button
             key={color.value}
@@ -162,13 +162,6 @@ export const TableHandleMenu: React.FC<{
             }
           />
         ))}
-        <button
-          type="button"
-          className="atiptap-notion-highlight__clear"
-          onClick={() => run(() => editor.chain().focus().unsetNodeBackgroundColor().run())}
-        >
-          清除
-        </button>
       </div>
       <div className="atiptap-notion-drag-menu__label">对齐</div>
       {(['left', 'center', 'right'] as const).map(align => (
@@ -218,16 +211,22 @@ export const TableHandleMenu: React.FC<{
 
   return (
     <>
-      <button
+      <div
         ref={triggerRef}
-        type="button"
+        role="button"
+        tabIndex={0}
         className="atiptap-notion-table-handle__menu"
+        data-open={open ? 'true' : 'false'}
         title={isRow ? '行操作' : '列操作'}
-        onMouseDown={event => event.stopPropagation()}
         onClick={openMenu}
+        onKeyDown={event => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            openMenu(event);
+          }
+        }}
       >
-        <MoreVertical size={12} />
-      </button>
+        <MoreVertical size={16} />
+      </div>
       {open ? createPortal(menu, document.body) : null}
     </>
   );

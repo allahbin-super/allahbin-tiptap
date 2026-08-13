@@ -48,10 +48,35 @@ export async function insertImageFiles(
     }
     const chain = editor.chain().focus();
     if (typeof pos === 'number') {
-      chain.insertContentAt(pos, { type: 'image', attrs: { src, alt: file.name } }).run();
+      chain.insertContentAt(pos, {
+        type: 'image',
+        attrs: { src, alt: file.name, 'data-align': 'center' }
+      });
     } else {
-      chain.setImage({ src, alt: file.name }).run();
+      chain.setImage({ src, alt: file.name }).updateAttributes('image', { 'data-align': 'center' });
     }
+    chain.run();
+    selectInsertedImage(editor);
+  }
+}
+
+function selectInsertedImage(editor: Editor) {
+  const { $from } = editor.state.selection;
+  for (let depth = $from.depth; depth >= 0; depth -= 1) {
+    if ($from.node(depth).type.name === 'image') {
+      const imagePos = depth === 0 ? 0 : $from.before(depth);
+      editor.commands.setNodeSelection(imagePos);
+      return;
+    }
+  }
+  const before = $from.nodeBefore;
+  if (before?.type.name === 'image') {
+    editor.commands.setNodeSelection($from.pos - before.nodeSize);
+    return;
+  }
+  const after = $from.nodeAfter;
+  if (after?.type.name === 'image') {
+    editor.commands.setNodeSelection($from.pos);
   }
 }
 

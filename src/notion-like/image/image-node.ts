@@ -1,9 +1,43 @@
 import type { ImageOptions } from '@tiptap/extension-image';
 import { Image as TiptapImage } from '@tiptap/extension-image';
 import type { Node } from '@tiptap/pm/model';
-import { TextSelection } from '@tiptap/pm/state';
+import { NodeSelection, Plugin, PluginKey, TextSelection } from '@tiptap/pm/state';
 import { ReactNodeViewRenderer } from '@tiptap/react';
 import { ImageNodeView } from './ImageNodeView';
+
+const imageSelectionKey = new PluginKey('notionImageSelection');
+
+function canEditImageCaption(node: Node): boolean {
+  return Boolean(node.attrs.showCaption) || node.content.size > 0;
+}
+
+/** 图注未展开时，禁止把光标放进图片节点内部，避免顶部空白条和闪烁 caret */
+function createImageSelectionPlugin() {
+  return new Plugin({
+    key: imageSelectionKey,
+    appendTransaction(transactions, _oldState, newState) {
+      if (!transactions.some(tr => tr.docChanged || tr.selectionSet)) {
+        return null;
+      }
+      const { selection, doc } = newState;
+      if (selection instanceof NodeSelection && selection.node.type.name === 'image') {
+        return null;
+      }
+      const { $from } = selection;
+      for (let depth = $from.depth; depth > 0; depth -= 1) {
+        const node = $from.node(depth);
+        if (node.type.name !== 'image') {
+          continue;
+        }
+        if (canEditImageCaption(node)) {
+          return null;
+        }
+        return newState.tr.setSelection(NodeSelection.create(doc, $from.before(depth)));
+      }
+      return null;
+    }
+  });
+}
 
 interface ImageAttributes {
   src: string | null;
@@ -34,12 +68,16 @@ function buildImageHTMLAttributes(attrs: ImageAttributes): Record<string, string
 /** ANotion 图片块：对齐、宽度、图注 */
 export const NotionImage = TiptapImage.extend<ImageOptions>({
   content: 'inline*',
+  atom: false,
+  isolating: true,
+  selectable: true,
+  draggable: true,
 
   addAttributes() {
     return {
       ...this.parent?.(),
       'data-align': {
-        default: null
+        default: 'center'
       },
       showCaption: {
         default: false,
@@ -61,7 +99,7 @@ export const NotionImage = TiptapImage.extend<ImageOptions>({
           }
           return {
             ...parseImageAttributes(img),
-            'data-align': node.getAttribute('data-align'),
+            'data-align': node.getAttribute('data-align') || 'center',
             showCaption: true
           };
         },
@@ -75,7 +113,7 @@ export const NotionImage = TiptapImage.extend<ImageOptions>({
           }
           return {
             ...parseImageAttributes(node),
-            'data-align': node.getAttribute('data-align'),
+            'data-align': node.getAttribute('data-align') || 'center',
             showCaption: false
           };
         }
@@ -130,6 +168,10 @@ export const NotionImage = TiptapImage.extend<ImageOptions>({
         return true;
       }
     };
+  },
+
+  addProseMirrorPlugins() {
+    return [...(this.parent?.() || []), createImageSelectionPlugin()];
   },
 
   addNodeView() {

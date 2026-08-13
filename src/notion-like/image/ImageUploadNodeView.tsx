@@ -112,7 +112,8 @@ export const ImageUploadNodeView: React.FC<NodeViewProps> = props => {
       attrs: {
         src: url,
         alt: images[index]?.name || 'image',
-        title: images[index]?.name || 'image'
+        title: images[index]?.name || 'image',
+        'data-align': 'center'
       }
     }));
     props.editor
@@ -121,6 +122,7 @@ export const ImageUploadNodeView: React.FC<NodeViewProps> = props => {
       .deleteRange({ from: pos, to: pos + props.node.nodeSize })
       .insertContentAt(pos, imageNodes)
       .run();
+    props.editor.commands.setNodeSelection(pos);
   };
 
   const hasFiles = fileItems.length > 0;

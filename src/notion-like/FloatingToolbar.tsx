@@ -83,7 +83,7 @@ export const FloatingToolbar: React.FC<{ editor: Editor | null }> = ({ editor })
         alignLeft: ctx.editor.isActive({ textAlign: 'left' }),
         alignCenter: ctx.editor.isActive({ textAlign: 'center' }),
         alignRight: ctx.editor.isActive({ textAlign: 'right' }),
-        imageAlign: (imageNode?.attrs['data-align'] as ImageAlign | null) || 'left',
+        imageAlign: (imageNode?.attrs['data-align'] as ImageAlign | null) || 'center',
         imageCaption: Boolean(imageNode?.attrs.showCaption)
       };
     }

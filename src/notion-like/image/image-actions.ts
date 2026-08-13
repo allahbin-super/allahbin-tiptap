@@ -5,6 +5,28 @@ import { downloadImageUrl } from './image-utils';
 
 export type ImageAlign = 'left' | 'center' | 'right';
 
+export function selectNearestImage(editor: Editor | null): boolean {
+  if (!editor) {
+    return false;
+  }
+  const { $from } = editor.state.selection;
+  for (let depth = $from.depth; depth >= 0; depth -= 1) {
+    if ($from.node(depth).type.name === 'image') {
+      const pos = depth === 0 ? 0 : $from.before(depth);
+      return editor.commands.setNodeSelection(pos);
+    }
+  }
+  const before = $from.nodeBefore;
+  if (before?.type.name === 'image') {
+    return editor.commands.setNodeSelection($from.pos - before.nodeSize);
+  }
+  const after = $from.nodeAfter;
+  if (after?.type.name === 'image') {
+    return editor.commands.setNodeSelection($from.pos);
+  }
+  return false;
+}
+
 export function isImageSelected(editor: Editor | null): boolean {
   if (!editor) {
     return false;

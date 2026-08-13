@@ -176,15 +176,13 @@ const getAnchorCellForHandle = (
 
 const createHandleStyles = (): React.CSSProperties => ({
   position: 'absolute',
-  width: 8,
-  height: 8,
+  width: 15,
+  height: 15,
   borderRadius: '50%',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  background: '#fff',
-  border: '2px solid #1677ff',
-  boxSizing: 'border-box',
+  background: 'transparent',
   pointerEvents: 'auto',
   zIndex: 10
 });
@@ -198,23 +196,23 @@ const createCornerHandleStyles = (
 
   const positionStyles: Record<typeof position, React.CSSProperties> = {
     tl: {
-      top: -4,
-      left: -4,
+      top: -7.5,
+      left: -7.5,
       cursor: isDisabled ? 'default' : 'nwse-resize'
     },
     tr: {
-      top: -4,
-      right: -4,
+      top: -7.5,
+      right: -7.5,
       cursor: isDisabled ? 'default' : 'nesw-resize'
     },
     bl: {
-      bottom: -4,
-      left: -4,
+      bottom: -7.5,
+      left: -7.5,
       cursor: isDisabled ? 'default' : 'nesw-resize'
     },
     br: {
-      bottom: -4,
-      right: -4,
+      bottom: -7.5,
+      right: -7.5,
       cursor: isDisabled ? 'default' : 'nwse-resize'
     }
   };

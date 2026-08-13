@@ -1,4 +1,13 @@
-import { offset } from '@floating-ui/react';
+import {
+  autoUpdate,
+  flip,
+  FloatingPortal,
+  offset,
+  shift,
+  size,
+  useFloating,
+  useMergeRefs
+} from '@floating-ui/react';
 import { DragHandle } from '@tiptap/extension-drag-handle-react';
 import type { Node as ProseMirrorNode } from '@tiptap/pm/model';
 import type { Editor } from '@tiptap/react';
@@ -29,7 +38,6 @@ import {
   Type
 } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 import {
   canMoveBlock,
   copyNodeMarkdown,
@@ -47,6 +55,8 @@ import { clearEntireTable, fitTableToWidth, setTableAlign } from './table';
 type BlockIcon = React.ComponentType<{ className?: string; size?: number }>;
 
 const DRAG_HANDLE_GAP = 8;
+const MENU_VIEWPORT_PADDING = 12;
+const MENU_MAX_HEIGHT = 420;
 
 /** 稳定对象，避免 DragHandle 插件反复卸载重装 */
 const DRAG_POSITION_CONFIG = {
@@ -230,16 +240,34 @@ const turnIntoItems: TurnIntoItem[] = [
   }
 ];
 
-/** 块拖拽句柄：胶囊句柄、空段加号、点击出块操作菜单 */
+/** 左侧图标打开转换菜单，右侧句柄拖拽块；空段只显示加号 */
 export const BlockDragHandle: React.FC<{ editor: Editor | null }> = ({ editor }) => {
   const [node, setNode] = useState<ProseMirrorNode | null>(null);
   const [nodePos, setNodePos] = useState(-1);
   const [menuOpen, setMenuOpen] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const { refs, floatingStyles } = useFloating({
+    open: menuOpen,
+    placement: 'right-start',
+    strategy: 'fixed',
+    middleware: [
+      offset({ mainAxis: DRAG_HANDLE_GAP, crossAxis: -8 }),
+      flip({ fallbackPlacements: ['left-start', 'right-end', 'left-end'] }),
+      shift({ padding: MENU_VIEWPORT_PADDING }),
+      size({
+        padding: MENU_VIEWPORT_PADDING,
+        apply({ availableHeight, elements }) {
+          elements.floating.style.maxHeight = `${Math.min(MENU_MAX_HEIGHT, availableHeight)}px`;
+        }
+      })
+    ],
+    whileElementsMounted: autoUpdate
+  });
+  const setTriggerRef = useMergeRefs([triggerRef, refs.setReference]);
+  const setMenuRef = useMergeRefs([menuRef, refs.setFloating]);
 
   const selectionState = useEditorState({
     editor,
@@ -332,17 +360,21 @@ export const BlockDragHandle: React.FC<{ editor: Editor | null }> = ({ editor })
   }, [editor]);
 
   const openMenu = () => {
-    const rect = triggerRef.current?.getBoundingClientRect();
-    if (rect) {
-      const menuWidth = 180;
-      const gap = 8;
-      const canOpenRight = rect.right + gap + menuWidth < window.innerWidth;
-      setMenuPos({
-        top: rect.top,
-        left: canOpenRight ? rect.right + gap : Math.max(8, rect.left - gap - menuWidth)
-      });
-    }
     setMenuOpen(open => !open);
+  };
+
+  const selectCurrentBlock = () => {
+    if (!editor || nodePos < 0) {
+      return;
+    }
+    selectBlockNode(editor, nodePos);
+  };
+
+  const onHandleMouseDown = (event: React.MouseEvent) => {
+    const target = event.target as HTMLElement;
+    if (!target.closest('[data-drag-grip]')) {
+      event.preventDefault();
+    }
   };
 
   const runTurnInto = (item: TurnIntoItem) => {
@@ -364,13 +396,14 @@ export const BlockDragHandle: React.FC<{ editor: Editor | null }> = ({ editor })
   const canMoveUp = canMoveBlock(editor, -1, nodePos);
   const canMoveDown = canMoveBlock(editor, 1, nodePos);
 
-  const blockMenu = (
-    <div
-      ref={menuRef}
-      className="atiptap-notion-drag-menu"
-      role="menu"
-      style={{ top: menuPos.top, left: menuPos.left }}
-    >
+  const blockMenu = menuOpen ? (
+    <FloatingPortal>
+      <div
+        ref={setMenuRef}
+        className="atiptap-notion-drag-menu"
+        role="menu"
+        style={floatingStyles}
+      >
       <div className="atiptap-notion-drag-menu__label">转为</div>
       {turnIntoItems.map(item => {
         const ItemIcon = item.icon;
@@ -516,8 +549,9 @@ export const BlockDragHandle: React.FC<{ editor: Editor | null }> = ({ editor })
         <Trash2 size={15} />
         删除
       </button>
-    </div>
-  );
+      </div>
+    </FloatingPortal>
+  ) : null;
 
   return (
     <DragHandle
@@ -537,6 +571,7 @@ export const BlockDragHandle: React.FC<{ editor: Editor | null }> = ({ editor })
             ...(hidden ? { opacity: 0, pointerEvents: 'none' } : {})
           } as React.CSSProperties
         }
+        onMouseDown={onHandleMouseDown}
       >
         {isMobile ? (
           <div className="atiptap-notion-move">
@@ -572,16 +607,16 @@ export const BlockDragHandle: React.FC<{ editor: Editor | null }> = ({ editor })
               </button>
             ) : (
               <button
-                ref={triggerRef}
+                ref={setTriggerRef}
                 type="button"
                 className="atiptap-notion-drag-trigger atiptap-notion-drag-trigger--add"
-                title="块操作"
+                title="转换为"
                 data-open={menuOpen ? 'true' : 'false'}
+                draggable={false}
                 onMouseDown={event => {
                   event.preventDefault();
-                  if (nodePos >= 0) {
-                    selectBlockNode(editor, nodePos);
-                  }
+                  event.stopPropagation();
+                  selectCurrentBlock();
                 }}
                 onClick={openMenu}
               >
@@ -600,27 +635,35 @@ export const BlockDragHandle: React.FC<{ editor: Editor | null }> = ({ editor })
             <Plus size={15} />
           </button>
         ) : (
-          <button
-            ref={triggerRef}
-            type="button"
-            className="atiptap-notion-drag-trigger"
-            title="点击查看操作，长按拖拽"
-            data-open={menuOpen ? 'true' : 'false'}
-            style={{ cursor: 'grab', ...(menuOpen ? { pointerEvents: 'none' } : undefined) }}
-            onMouseDown={event => {
-              event.preventDefault();
-              if (nodePos >= 0) {
-                selectBlockNode(editor, nodePos);
-              }
-            }}
-            onClick={openMenu}
-          >
-            {TypeIcon ? <TypeIcon size={15} className="atiptap-notion-drag-type-icon" /> : null}
-            <GripVertical size={10} className="atiptap-notion-drag-grip" />
-          </button>
+          <div className="atiptap-notion-drag-split" data-open={menuOpen ? 'true' : 'false'}>
+            <button
+              ref={setTriggerRef}
+              type="button"
+              className="atiptap-notion-drag-split__type"
+              title="转换为"
+              data-open={menuOpen ? 'true' : 'false'}
+              draggable={false}
+              onMouseDown={event => {
+                event.preventDefault();
+                event.stopPropagation();
+                selectCurrentBlock();
+              }}
+              onClick={openMenu}
+            >
+              {TypeIcon ? <TypeIcon size={15} className="atiptap-notion-drag-type-icon" /> : <Type size={15} />}
+            </button>
+            <span
+              data-drag-grip
+              className="atiptap-notion-drag-split__grip"
+              title="拖拽"
+              onMouseDown={selectCurrentBlock}
+            >
+              <GripVertical size={14} className="atiptap-notion-drag-grip" />
+            </span>
+          </div>
         )}
       </div>
-      {menuOpen ? createPortal(blockMenu, document.body) : null}
+      {blockMenu}
     </DragHandle>
   );
 };

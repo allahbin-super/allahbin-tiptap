@@ -1,6 +1,8 @@
 import { Extension } from '@tiptap/core';
 import { NodeRange } from '@tiptap/extension-node-range';
-import { Placeholder } from '@tiptap/extensions';
+import { Placeholder, TrailingNode } from '@tiptap/extensions';
+import { TextSelection } from '@tiptap/pm/state';
+import type { EditorView } from '@tiptap/pm/view';
 import type { Editor } from '@tiptap/react';
 import { EditorContent, useEditor } from '@tiptap/react';
 import classNames from 'classnames';
@@ -17,6 +19,7 @@ import {
   NotionImage,
   downloadSelectedImage,
   insertImageUploadNode,
+  selectNearestImage,
   setImageAlign
 } from './image';
 import './notion-like.css';
@@ -30,6 +33,33 @@ import {
   TableHandleExtension,
   TableSelectionOverlay
 } from './table';
+
+/** 点击编辑器底部空白时，把光标落到末尾可编辑块 */
+function focusTrailingBlockOnEmptyClick(view: EditorView, event: MouseEvent): boolean {
+  if (!(event.target instanceof Element) || !view.dom.contains(event.target)) {
+    return false;
+  }
+  // 点在具体块上时交给默认行为
+  if (event.target !== view.dom && event.target.closest('.ProseMirror > *')) {
+    return false;
+  }
+
+  const lastChild = view.dom.lastElementChild;
+  if (!lastChild) {
+    return false;
+  }
+
+  const lastBottom = lastChild.getBoundingClientRect().bottom;
+  if (event.clientY <= lastBottom) {
+    return false;
+  }
+
+  const { doc } = view.state;
+  const selection = TextSelection.near(doc.resolve(doc.content.size), -1);
+  view.dispatch(view.state.tr.setSelection(selection));
+  view.focus();
+  return true;
+}
 
 export type NotionLikeEditorProps = {
   /** Markdown 内容 */
@@ -110,10 +140,24 @@ export const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
       TableCellAttrs,
       NodeRange,
       BlockShortcuts,
+      TrailingNode.configure({
+        node: 'paragraph',
+        notAfter: ['paragraph']
+      }),
       ...createImageUploadExtensions(imageUploader),
       Placeholder.configure({
-        placeholder,
-        emptyNodeClass: 'is-empty with-slash',
+        placeholder: ({ node }) => {
+          if (node.type.name === 'image' || node.type.name === 'imageUpload') {
+            return '';
+          }
+          return placeholder;
+        },
+        emptyNodeClass: ({ node }) => {
+          if (node.type.name === 'image' || node.type.name === 'imageUpload') {
+            return '';
+          }
+          return 'is-empty with-slash';
+        },
         showOnlyCurrent: true
       })
     ],
@@ -121,7 +165,8 @@ export const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
       attributes: {
         class: 'atiptap-notion-prosemirror',
         spellcheck: 'false'
-      }
+      },
+      handleClick: (view, _pos, event) => focusTrailingBlockOnEmptyClick(view, event)
     },
     onCreate: ({ editor: currentEditor }) => {
       currentEditor.storage.imageUploader.requestUrlInsert = () => setImageUrlOpen(true);
@@ -184,6 +229,7 @@ export const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
             onKeyDown={event => {
               if (event.key === 'Enter' && imageUrl.trim()) {
                 editor.chain().focus().setImage({ src: imageUrl.trim() }).run();
+                selectNearestImage(editor);
                 setImageUrl('');
                 setImageUrlOpen(false);
               }
@@ -200,6 +246,7 @@ export const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
                 return;
               }
               editor.chain().focus().setImage({ src: imageUrl.trim() }).run();
+              selectNearestImage(editor);
               setImageUrl('');
               setImageUrlOpen(false);
             }}

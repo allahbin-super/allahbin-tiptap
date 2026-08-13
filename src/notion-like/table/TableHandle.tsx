@@ -1,6 +1,5 @@
 import { FloatingPortal } from '@floating-ui/react';
 import type { Editor } from '@tiptap/react';
-import { GripVertical } from 'lucide-react';
 import React, { useCallback, useMemo, useState } from 'react';
 import { TableHandleMenu } from './TableHandleMenu';
 import { colDragStart, dragEnd, rowDragStart } from './table-handle-plugin';
@@ -64,13 +63,14 @@ export const TableHandle: React.FC<{ editor: Editor | null }> = ({ editor }) => 
         <FloatingPortal>
           <div
             ref={rowHandle.ref}
-            className="atiptap-notion-table-handle atiptap-notion-table-handle--row"
+            className={`atiptap-notion-table-handle atiptap-notion-table-handle--row${
+              menuOpen === 'row' ? ' is-open' : ''
+            }${state.draggingState?.draggedCellOrientation === 'row' ? ' is-dragging' : ''}`}
             style={rowHandle.style}
             draggable
             onDragStart={onRowDragStart}
             onDragEnd={dragEnd}
           >
-            <GripVertical size={12} />
             <TableHandleMenu
               editor={editor}
               orientation="row"
@@ -90,13 +90,14 @@ export const TableHandle: React.FC<{ editor: Editor | null }> = ({ editor }) => 
         <FloatingPortal>
           <div
             ref={colHandle.ref}
-            className="atiptap-notion-table-handle atiptap-notion-table-handle--col"
+            className={`atiptap-notion-table-handle atiptap-notion-table-handle--col${
+              menuOpen === 'column' ? ' is-open' : ''
+            }${state.draggingState?.draggedCellOrientation === 'col' ? ' is-dragging' : ''}`}
             style={colHandle.style}
             draggable
             onDragStart={onColDragStart}
             onDragEnd={dragEnd}
           >
-            <GripVertical size={12} />
             <TableHandleMenu
               editor={editor}
               orientation="column"

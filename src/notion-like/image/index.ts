@@ -4,6 +4,7 @@ export {
   insertImageUploadNode,
   isImageSelected,
   replaceSelectedImage,
+  selectNearestImage,
   setImageAlign,
   showImageCaption
 } from './image-actions';
