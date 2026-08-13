@@ -19,7 +19,7 @@
     "lint": "npm run lint:es && npm run lint:css",
     "lint:css": "stylelint \"{src,test}/**/*.{css,less}\"",
     "lint:es": "eslint \"{src,test}/**/*.{js,jsx,ts,tsx}\"",
-    "prepare": "husky install && dumi setup",
+    "prepare": "husky && dumi setup",
     "prepublishOnly": "father doctor && npm run build",
     "publishNpm": "father doctor && npm run build && npm publish --access public --registry=https://registry.npmjs.org/",
     "start": "npm run dev"
@@ -50,13 +50,17 @@
     "lowlight": "3.3.0"
   },
   "dependencies": {
+    "@floating-ui/react": "^0.27.20",
     "@tippyjs/react": "^4.2.6",
     "@tiptap/core": "^3.30.0",
     "@tiptap/extension-blockquote": "^3.30.0",
     "@tiptap/extension-bold": "^3.30.0",
+    "@tiptap/extension-bubble-menu": "^3.30.0",
     "@tiptap/extension-code": "^3.30.0",
     "@tiptap/extension-code-block": "^3.30.0",
     "@tiptap/extension-document": "^3.30.0",
+    "@tiptap/extension-drag-handle": "^3.30.0",
+    "@tiptap/extension-drag-handle-react": "^3.30.0",
     "@tiptap/extension-hard-break": "^3.30.0",
     "@tiptap/extension-heading": "^3.30.0",
     "@tiptap/extension-horizontal-rule": "^3.30.0",
@@ -64,6 +68,7 @@
     "@tiptap/extension-italic": "^3.30.0",
     "@tiptap/extension-link": "^3.30.0",
     "@tiptap/extension-list": "^3.30.0",
+    "@tiptap/extension-node-range": "^3.30.0",
     "@tiptap/extension-paragraph": "^3.30.0",
     "@tiptap/extension-strike": "^3.30.0",
     "@tiptap/extension-table": "^3.30.0",
@@ -75,6 +80,7 @@
     "@tiptap/extensions": "^3.30.0",
     "@tiptap/pm": "^3.30.0",
     "@tiptap/react": "^3.30.0",
+    "@tiptap/suggestion": "^3.30.0",
     "classnames": "^2.5.1",
     "highlight.js": "^11.11.2",
     "lowlight": "^3.3.0",
@@ -108,11 +114,6 @@
   },
   "publishConfig": {
     "access": "public"
-  },
-  "pnpm": {
-    "overrides": {
-      "prosemirror-state": "1.4.4"
-    }
   },
   "authors": [
     "allahbin <16008@theling.cn>"
