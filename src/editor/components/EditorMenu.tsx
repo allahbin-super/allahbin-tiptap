@@ -8,7 +8,7 @@ import { insertImageFiles, pickLocalImage } from '../../image-upload';
 import { MenuBar } from '../../menubar';
 import '../../notion-like/notion-like.css';
 import { LinkPopover } from '../../ui/LinkPopover';
-import type { TideEditor } from '../TideEditor';
+import type { ATiptapEditor } from '../ATiptapEditor';
 import { useEditorContext } from '../context/EditorContext';
 
 const HIGHLIGHT_COLORS = [
@@ -20,7 +20,7 @@ const HIGHLIGHT_COLORS = [
 ];
 
 export const EditorMenu: React.FC<{
-  editor: TideEditor | null;
+  editor: ATiptapEditor | null;
   disabledMenu?: boolean;
   menuClassName?: string;
   onFullscreenChange: (v: boolean) => void;
@@ -117,7 +117,7 @@ export const EditorMenu: React.FC<{
           </TextButton>
         ),
         highlight && (
-          <span key="highlight" className="atiptap-notion-highlight tide-menu-highlight">
+          <span key="highlight" className="atiptap-notion-highlight atiptap-menu-highlight">
             <TextButton
               onClick={() => setHighlightOpen(open => !open)}
               isActive={editor.isActive('highlight') || highlightOpen}
@@ -317,7 +317,7 @@ export const EditorMenu: React.FC<{
         // eslint-disable-next-line react/no-array-index-key
         <React.Fragment key={index}>
           {group}
-          {index < items.length - 1 && <span className="tide-menu-bar-divider" />}
+          {index < items.length - 1 && <span className="atiptap-menu-bar-divider" />}
         </React.Fragment>
       ));
   }, [
@@ -353,7 +353,7 @@ export const EditorMenu: React.FC<{
         {menuItems}
       </MenuBar>
       {resourceInput && (
-        <div className="tide-menu-resource-input" role="dialog" aria-label="资源地址输入">
+        <div className="atiptap-menu-resource-input" role="dialog" aria-label="资源地址输入">
           <label>
             图片地址
             <input

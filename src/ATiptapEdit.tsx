@@ -9,9 +9,10 @@ import { StarterKit, StarterKitOptions } from './starter-kit';
 
 import { ParseOptions } from '@tiptap/pm/model';
 import { EditorProps } from '@tiptap/pm/view';
+import type { Editor } from '@tiptap/react';
 import { ALink } from './a-link';
 import { createImageUploadExtensions } from './image-upload';
-import { EditorRender, EditorRenderProps, TideEditor, useEditor } from './tide';
+import { EditorRender, EditorRenderProps, useEditor } from './editor';
 
 export type UploaderFunc = (
   file: File,
@@ -89,8 +90,8 @@ export type SimpleConfigureOptions = {
 };
 
 export type IATiptapProps = Omit<EditorRenderProps, 'editor'> & {
-  onChange?: (doc: any, editor: TideEditor) => void;
-  onReady?: (editor: any) => void;
+  onChange?: (doc: any, editor: Editor) => void;
+  onReady?: (editor: Editor) => void;
   editorProps?: EditorProps;
   parseOptions?: ParseOptions;
   editable?: boolean;
@@ -102,9 +103,10 @@ export type IATiptapProps = Omit<EditorRenderProps, 'editor'> & {
    */
   mode?: 'html' | 'md' | 'json';
   /**
-   * 渲染的模式 - 普通 还是 公文 自定义 - 默认是gov
+   * 渲染的模式：公文皮肤 / 普通皮肤 / 自定义 / Notion 块编辑器
+   * @default "gov"
    */
-  renderMode?: 'normal' | 'gov' | 'custom';
+  renderMode?: 'normal' | 'gov' | 'custom' | 'notion';
   /**
    * 边框 - 默认预览是有边框的，但是可以设置成无边框模式
    */

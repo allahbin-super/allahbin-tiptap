@@ -1,4 +1,4 @@
-import { ITiptapJson } from '../tide';
+import { ITiptapJson } from '../editor';
 import TiptapRender, { IRenderConfig } from './TiptapRender';
 
 class TiptapRenderFactory {

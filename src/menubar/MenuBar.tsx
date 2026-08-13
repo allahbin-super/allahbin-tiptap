@@ -8,7 +8,7 @@ type MenuBarProps = {
 };
 
 export const MenuBar: React.FC<MenuBarProps> = ({ className, style, children }) => (
-  <div className={classNames('tide-menu-bar', className)} style={style}>
+  <div className={classNames('atiptap-menu-bar', className)} style={style}>
     {children}
   </div>
 );

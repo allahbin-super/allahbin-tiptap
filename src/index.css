@@ -1,42 +1,73 @@
 /* 基础编辑器样式 */
-.tide-content .ProseMirror {
+.atiptap-editor {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.atiptap-editor .atiptap-menu-bar,
+.atiptap-editor .atiptap-menu-resource-input {
+  flex-shrink: 0;
+}
+
+.atiptap-editor .atiptap-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+.atiptap-editor .atiptap-content .ProseMirror {
+  box-sizing: border-box;
+  min-height: 100%;
+  outline: none;
+  padding: 12px 16px;
   font-size: 12pt;
 }
 
-.tide-content .ProseMirror table {
+.atiptap-editor--fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  width: 100% !important;
+  height: 100% !important;
+  background: #fff;
+}
+
+.atiptap-content .ProseMirror table {
   width: 100% !important;
 }
 
 /* 移除边框和内边距 */
-.atiptap_bordered_false_false .tide-editor {
+.atiptap_bordered_false_false .atiptap-editor {
   border: 0;
 }
 
-.atiptap_bordered_false_false .tide-editor .tide-content .ProseMirror {
+.atiptap_bordered_false_false .atiptap-editor .atiptap-content .ProseMirror {
   padding: 0;
 }
 
 /* === 政府风格(gov)文档样式 === */
-.atiptap_main_gov .tide-content .ProseMirror {
+.atiptap_main_gov .atiptap-content .ProseMirror {
   font-family: '宋体', serif;
   text-indent: 2em;
   color: #000;
 }
 
 /* 取消特定元素的缩进 */
-.tide-content .ProseMirror li p,
-.tide-content .ProseMirror li label,
-.tide-content .ProseMirror hr {
+.atiptap-content .ProseMirror li p,
+.atiptap-content .ProseMirror li label,
+.atiptap-content .ProseMirror hr {
   text-indent: 0;
 }
 
 /* 特殊缩进处理 */
-.atiptap_main_gov .tide-content .ProseMirror br + span {
+.atiptap_main_gov .atiptap-content .ProseMirror br + span {
   text-indent: 2em;
 }
 
 /* 链接样式 */
-.tide-content a {
+.atiptap-content a {
   color: blue;
   text-decoration: underline;
   cursor: pointer;
@@ -51,10 +82,10 @@
 }
 
 /* 标题样式 - 共性 */
-.tide-content .tide-menu-head-row__title--levelATitle1,
-.tide-content .tide-menu-head-row__title--levelATitle2,
-.tide-content .a-tiptap-title1,
-.tide-content .a-tiptap-title2 {
+.atiptap-content .atiptap-menu-head-row__title--levelATitle1,
+.atiptap-content .atiptap-menu-head-row__title--levelATitle2,
+.atiptap-content .a-tiptap-title1,
+.atiptap-content .a-tiptap-title2 {
   font-family: '宋体', serif;
   font-weight: bold;
   margin: 2px 0;
@@ -63,71 +94,71 @@
 }
 
 /* 一级标题样式 */
-.tide-content .tide-menu-head-row__title--levelATitle1,
-.tide-content .a-tiptap-title1 {
+.atiptap-content .atiptap-menu-head-row__title--levelATitle1,
+.atiptap-content .a-tiptap-title1 {
   font-size: 24px;
 }
 
 /* 二级标题样式 */
-.tide-content .tide-menu-head-row__title--levelATitle2,
-.tide-content .a-tiptap-title2 {
+.atiptap-content .atiptap-menu-head-row__title--levelATitle2,
+.atiptap-content .a-tiptap-title2 {
   font-size: 18px;
 }
 
 /* 三级标题和文号共性 */
-.tide-content .a-tiptap-title3,
-.tide-content .tide-menu-head-row__title--levelATitle3,
-.tide-content .a-tiptap-wenhao {
+.atiptap-content .a-tiptap-title3,
+.atiptap-content .atiptap-menu-head-row__title--levelATitle3,
+.atiptap-content .a-tiptap-wenhao {
   font-family: '楷体', serif;
   font-size: 12pt;
   margin: 2px 0;
 }
 
 /* 三级标题特性 */
-.tide-content .a-tiptap-title3,
-.tide-content .tide-menu-head-row__title--levelATitle3 {
+.atiptap-content .a-tiptap-title3,
+.atiptap-content .atiptap-menu-head-row__title--levelATitle3 {
   font-weight: normal;
   line-height: 1.8em;
 }
 
 /* 政府风格三级标题缩进 */
-.atiptap_main_gov .tide-content .a-tiptap-title3,
-.atiptap_main_gov .tide-content .tide-menu-head-row__title--levelATitle3 {
+.atiptap_main_gov .atiptap-content .a-tiptap-title3,
+.atiptap_main_gov .atiptap-content .atiptap-menu-head-row__title--levelATitle3 {
   text-indent: 2em;
 }
 
 /* 文号样式特性 */
-.tide-content .a-tiptap-wenhao {
+.atiptap-content .a-tiptap-wenhao {
   text-align: center;
   text-indent: 0;
 }
 
 /* ProseMirror 内部标题样式 - 政府模式 */
-.atiptap_main_gov .tide-content .ProseMirror h1,
-.atiptap_main_gov .tide-content .ProseMirror h2 {
+.atiptap_main_gov .atiptap-content .ProseMirror h1,
+.atiptap_main_gov .atiptap-content .ProseMirror h2 {
   font-size: 12pt;
   margin: 2px 0;
 }
 
 /* 政府模式 H1-H3 标题缩进 */
-.atiptap_main_gov .tide-content .ProseMirror h1,
-.atiptap_main_gov .tide-content .ProseMirror h2,
-.atiptap_main_gov .tide-content .ProseMirror h3 {
+.atiptap_main_gov .atiptap-content .ProseMirror h1,
+.atiptap_main_gov .atiptap-content .ProseMirror h2,
+.atiptap_main_gov .atiptap-content .ProseMirror h3 {
   text-indent: 2em;
 }
 
-.atiptap_main_gov .tide-content .ProseMirror .tableWrapper .scrollWrapper {
+.atiptap_main_gov .atiptap-content .ProseMirror .tableWrapper .scrollWrapper {
   padding: 28px 4em 4px;
 }
 
-.atiptap_main_gov .tide-content .ProseMirror .node-codeBlock,
-.atiptap_main_gov .tide-content .ProseMirror ul,
-.atiptap_main_gov .tide-content .ProseMirror ol {
+.atiptap_main_gov .atiptap-content .ProseMirror .node-codeBlock,
+.atiptap_main_gov .atiptap-content .ProseMirror ul,
+.atiptap_main_gov .atiptap-content .ProseMirror ol {
   padding: 0 2em;
 }
 
 /* === Normal 模式(GitHub 文章风格) === */
-.atiptap_main_normal .tide-content .ProseMirror {
+.atiptap_main_normal .atiptap-content .ProseMirror {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans',
     Helvetica, Arial, sans-serif;
   font-size: 14px;
@@ -138,38 +169,38 @@
 }
 
 /* Normal 模式标题共性 */
-.atiptap_main_normal .tide-content .ProseMirror h1,
-.atiptap_main_normal .tide-content .ProseMirror h2,
-.atiptap_main_normal .tide-content .ProseMirror h3 {
+.atiptap_main_normal .atiptap-content .ProseMirror h1,
+.atiptap_main_normal .atiptap-content .ProseMirror h2,
+.atiptap_main_normal .atiptap-content .ProseMirror h3 {
   font-weight: bold;
   margin: 24px 0 16px;
   text-indent: 0; /* 覆盖缩进设置 */
 }
 
 /* Normal 模式边框标题 */
-.atiptap_main_normal .tide-content .ProseMirror h1,
-.atiptap_main_normal .tide-content .ProseMirror h2 {
+.atiptap_main_normal .atiptap-content .ProseMirror h1,
+.atiptap_main_normal .atiptap-content .ProseMirror h2 {
   border-bottom: 1px solid #eaecef;
   padding-bottom: 0.3em;
 }
 
 /* Normal 模式 H1 标题 */
-.atiptap_main_normal .tide-content .ProseMirror h1 {
+.atiptap_main_normal .atiptap-content .ProseMirror h1 {
   font-size: 2em;
 }
 
 /* Normal 模式 H2 标题 */
-.atiptap_main_normal .tide-content .ProseMirror h2 {
+.atiptap_main_normal .atiptap-content .ProseMirror h2 {
   font-size: 1.5em;
 }
 
 /* Normal 模式 H3 标题 */
-.atiptap_main_normal .tide-content .ProseMirror h3 {
+.atiptap_main_normal .atiptap-content .ProseMirror h3 {
   font-size: 1.25em;
 }
 
 /* Normal 模式的代码块 */
-.atiptap_main_normal .tide-content .ProseMirror pre {
+.atiptap_main_normal .atiptap-content .ProseMirror pre {
   background-color: #f6f8fa;
   padding: 16px;
   border-radius: 6px;
@@ -181,22 +212,22 @@
 }
 
 /* Normal 模式超链接 */
-.atiptap_main_normal .tide-content .ProseMirror a {
+.atiptap_main_normal .atiptap-content .ProseMirror a {
   color: #0969da;
   text-decoration: none;
 }
 
-.atiptap_main_normal .tide-content .ProseMirror a:hover {
+.atiptap_main_normal .atiptap-content .ProseMirror a:hover {
   text-decoration: underline;
 }
 
 /* === Custom 模式（预留） === */
-.atiptap_main_custom .tide-content .ProseMirror {
+.atiptap_main_custom .atiptap-content .ProseMirror {
   /* 可以扩展 custom 模式的默认样式 */
 }
 
-/* 简易菜单样式（替代 tide menubar 样式） */
-.tide-menu-bar {
+/* 简易菜单样式（替代旧版 menubar 样式） */
+.atiptap-menu-bar {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -206,14 +237,14 @@
   background: #fff;
 }
 
-.tide-menu-bar-divider {
+.atiptap-menu-bar-divider {
   width: 1px;
   height: 20px;
   background: #e5e7eb;
   margin: 0 4px;
 }
 
-.tide-menu-bar__btn {
+.atiptap-menu-bar__btn {
   border: 1px solid #d1d5db;
   border-radius: 6px;
   background: #fff;
@@ -223,22 +254,22 @@
   cursor: pointer;
 }
 
-.tide-menu-bar__btn:hover {
+.atiptap-menu-bar__btn:hover {
   background: #f3f4f6;
 }
 
-.tide-menu-bar__btn--active {
+.atiptap-menu-bar__btn--active {
   color: #1d4ed8;
   border-color: #93c5fd;
   background: #eff6ff;
 }
 
-.tide-menu-bar__btn--disabled {
+.atiptap-menu-bar__btn--disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.tide-menu-resource-input {
+.atiptap-menu-resource-input {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -248,13 +279,13 @@
   font-size: 12px;
 }
 
-.tide-menu-resource-input label {
+.atiptap-menu-resource-input label {
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-.tide-menu-resource-input input {
+.atiptap-menu-resource-input input {
   width: 220px;
   border: 1px solid #d1d5db;
   border-radius: 6px;
@@ -262,7 +293,7 @@
   font-size: 12px;
 }
 
-.tide-menu-resource-input button {
+.atiptap-menu-resource-input button {
   border: 1px solid #d1d5db;
   border-radius: 6px;
   background: #fff;
@@ -271,7 +302,7 @@
   cursor: pointer;
 }
 
-.tide-menu-bar .atiptap-notion-link__trigger {
+.atiptap-menu-bar .atiptap-notion-link__trigger {
   border: 1px solid #d1d5db;
   border-radius: 6px;
   background: #fff;
@@ -281,13 +312,13 @@
   line-height: 1;
 }
 
-.tide-menu-bar .atiptap-notion-link__trigger[data-active='true'] {
+.atiptap-menu-bar .atiptap-notion-link__trigger[data-active='true'] {
   color: #1d4ed8;
   border-color: #93c5fd;
   background: #eff6ff;
 }
 
-.tide-menu-highlight {
+.atiptap-menu-highlight {
   position: relative;
   display: inline-flex;
 }

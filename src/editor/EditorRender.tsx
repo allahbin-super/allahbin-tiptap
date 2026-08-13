@@ -1,9 +1,9 @@
 import React from 'react';
-import type { TideEditor } from './TideEditor';
+import type { ATiptapEditor } from './ATiptapEditor';
 import { EditorContent, EditorLayout, EditorMenu } from './components';
 
 export type EditorRenderProps = {
-  editor: TideEditor | null;
+  editor: ATiptapEditor | null;
   className?: string;
   style?: React.CSSProperties;
   menuClassName?: string;

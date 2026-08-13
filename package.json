@@ -1,6 +1,6 @@
 {
   "name": "@allahbin/tiptap",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "基于tiptap的中文文章编辑器",
   "homepage": "https://github.com/Tzng/allahbin-tiptap",
   "license": "MIT",
@@ -113,7 +113,6 @@
     "stylelint": "14.16.1"
   },
   "peerDependencies": {
-    "lowlight": "^3.3.0",
     "react": ">=19.0.0",
     "react-dom": ">=19.0.0"
   },

@@ -1,5 +1,5 @@
 import 'highlight.js/styles/default.css';
-import { ITiptapJson } from '../tide';
+import { ITiptapJson } from '../editor';
 import TiptapRender, { IRenderConfig } from './TiptapRender';
 
 // 定义段落的数组，也就是占一行的类型有哪些

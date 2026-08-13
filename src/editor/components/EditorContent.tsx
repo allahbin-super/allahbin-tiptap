@@ -1,10 +1,10 @@
 import { EditorContent as TEditorContent } from '@tiptap/react';
 import classNames from 'classnames';
 import React from 'react';
-import type { TideEditor } from '../TideEditor';
+import type { ATiptapEditor } from '../ATiptapEditor';
 
 export type EditorContentProps = {
-  editor: TideEditor | null;
+  editor: ATiptapEditor | null;
   contentClassName?: string;
   contentStyle?: React.CSSProperties;
   children?: React.ReactNode;
@@ -16,7 +16,7 @@ export const EditorContent: React.FC<EditorContentProps> = ({
   contentStyle,
   children
 }) => {
-  const cls = classNames('tide-content', contentClassName);
+  const cls = classNames('atiptap-content', contentClassName);
 
   if (editor && editor.isEmpty && editor.isReadOnly) {
     return (

@@ -3,7 +3,7 @@ import classNames from 'classnames';
 import { ChevronDown } from 'lucide-react';
 import React, { useState } from 'react';
 import { command, option } from '../menubar';
-import type { TideEditor } from '../tide';
+import type { ATiptapEditor } from '../editor';
 import TextButton from './TextButton';
 
 const headingLevels: any[] = ['ATitle1', 'ATitle2', 'ATitle3', 1, 2, 3];
@@ -16,7 +16,7 @@ const headingLevelsMap: Record<string, string> = {
 };
 
 type ATitleBarProps = {
-  editor: TideEditor;
+  editor: ATiptapEditor;
 };
 
 export const ATitleBar: React.FC<ATitleBarProps> = ({ editor }) => {
@@ -69,8 +69,8 @@ export const ATitleBar: React.FC<ATitleBarProps> = ({ editor }) => {
         onClickOutside={() => setHeadVisible(false)}
         visible={headVisible}
         content={
-          <div className="tide-dropdown-menu">
-            <div className="tide-dropdown-menu__content">
+          <div className="atiptap-dropdown-menu">
+            <div className="atiptap-dropdown-menu__content">
               <div
                 onClick={() => {
                   if (
@@ -82,14 +82,14 @@ export const ATitleBar: React.FC<ATitleBarProps> = ({ editor }) => {
                   editor.chain().focus().setParagraph().run();
                   setHeadVisible(false);
                 }}
-                className={classNames('tide-dropdown-menu__item', {
-                  'tide-dropdown-menu__item--active': statusMap.paragraphIsActive,
-                  'tide-dropdown-menu__item--disabled': statusMap.paragraphIsDisabled
+                className={classNames('atiptap-dropdown-menu__item', {
+                  'atiptap-dropdown-menu__item--active': statusMap.paragraphIsActive,
+                  'atiptap-dropdown-menu__item--disabled': statusMap.paragraphIsDisabled
                 })}
               >
-                <div className={classNames('tide-menu-head-row')}>
+                <div className={classNames('atiptap-menu-head-row')}>
                   <span>正文</span>
-                  <span className="tide-menu-head-row__span">{`${command} + ${option} + 0`}</span>
+                  <span className="atiptap-menu-head-row__span">{`${command} + ${option} + 0`}</span>
                 </div>
               </div>
               {headingLevels.map(level => (
@@ -140,17 +140,17 @@ export const ATitleBar: React.FC<ATitleBarProps> = ({ editor }) => {
                     }
                     setHeadVisible(false);
                   }}
-                  className={classNames('tide-dropdown-menu__item', {
-                    'tide-dropdown-menu__item--active': statusMap[`${level}IsActive`],
-                    'tide-dropdown-menu__item--disabled': statusMap[`${level}Disabled`]
+                  className={classNames('atiptap-dropdown-menu__item', {
+                    'atiptap-dropdown-menu__item--active': statusMap[`${level}IsActive`],
+                    'atiptap-dropdown-menu__item--disabled': statusMap[`${level}Disabled`]
                   })}
                 >
-                  <div className={classNames('tide-menu-head-row')}>
-                    <span className={`tide-menu-head-row__title--level${level}`}>
+                  <div className={classNames('atiptap-menu-head-row')}>
+                    <span className={`atiptap-menu-head-row__title--level${level}`}>
                       {headingLevelsMap[level] || `${level}级标题`}
                     </span>
                     {typeof level === 'number' && (
-                      <span className="tide-menu-head-row__span">
+                      <span className="atiptap-menu-head-row__span">
                         {`${command} + ${option} + ${level}`}
                       </span>
                     )}
@@ -162,12 +162,12 @@ export const ATitleBar: React.FC<ATitleBarProps> = ({ editor }) => {
         }
       >
         <TextButton
-          className="tide-dropdown-trigger"
+          className="atiptap-dropdown-trigger"
           onClick={() => setHeadVisible(!headVisible)}
           isActive={statusMap.paragraphIsActive}
         >
-          <span className="tide-dropdown-trigger__head-text">{getHeadingText()}</span>
-          <ChevronDown className="tide-dropdown-trigger__head-icon" size={16} />
+          <span className="atiptap-dropdown-trigger__head-text">{getHeadingText()}</span>
+          <ChevronDown className="atiptap-dropdown-trigger__head-icon" size={16} />
         </TextButton>
       </Tippy>
     </div>

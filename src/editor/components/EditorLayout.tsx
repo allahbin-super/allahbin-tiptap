@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import React, { PropsWithChildren } from 'react';
 import { EditorContextProvider, useEditorContext } from '../context/EditorContext';
 
-import type { TideEditor } from '../TideEditor';
+import type { ATiptapEditor } from '../ATiptapEditor';
 
 const Layout: React.FC<
   PropsWithChildren<{
@@ -11,7 +11,7 @@ const Layout: React.FC<
   }>
 > = ({ style, className, children }) => {
   const { fullscreen } = useEditorContext();
-  const cls = classNames('tide-editor', { 'tide-editor--fullscreen': fullscreen }, className);
+  const cls = classNames('atiptap-editor', { 'atiptap-editor--fullscreen': fullscreen }, className);
 
   return (
     <div className={cls} style={style}>
@@ -22,7 +22,7 @@ const Layout: React.FC<
 
 export const EditorLayout: React.FC<
   PropsWithChildren<{
-    editor: TideEditor | null;
+    editor: ATiptapEditor | null;
     className?: string;
     style?: React.CSSProperties;
   }>

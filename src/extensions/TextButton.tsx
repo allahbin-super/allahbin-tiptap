@@ -19,10 +19,10 @@ const TextButton = forwardRef<HTMLButtonElement, ButtonProps>(
         onClick={onClick}
         disabled={disabled}
         className={classNames(
-          'tide-menu-bar__btn',
+          'atiptap-menu-bar__btn',
           {
-            'tide-menu-bar__btn--active': isActive,
-            'tide-menu-bar__btn--disabled': disabled
+            'atiptap-menu-bar__btn--active': isActive,
+            'atiptap-menu-bar__btn--disabled': disabled
           },
           className
         )}

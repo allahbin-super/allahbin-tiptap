@@ -1,5 +1,5 @@
-import type { TideEditorOptions } from './TideEditor';
-import { TideEditor } from './TideEditor';
+import type { ATiptapEditorOptions } from './ATiptapEditor';
+import { ATiptapEditor } from './ATiptapEditor';
 
 import type { DependencyList } from 'react';
 import { useEffect, useState } from 'react';
@@ -11,16 +11,16 @@ export * from './components/EditorMenu';
 export * from './context/EditorContext';
 
 export * from './EditorRender';
-export * from './TideEditor';
+export * from './ATiptapEditor';
 
 export const useEditor: (
-  options: Partial<TideEditorOptions>,
+  options: Partial<ATiptapEditorOptions>,
   deps?: DependencyList
-) => TideEditor | null = (options, deps = []) => {
-  const [editor, setEditor] = useState<TideEditor | null>(null);
+) => ATiptapEditor | null = (options, deps = []) => {
+  const [editor, setEditor] = useState<ATiptapEditor | null>(null);
 
   useEffect(() => {
-    const instance = new TideEditor(options);
+    const instance = new ATiptapEditor(options);
     setEditor(instance);
 
     return () => {

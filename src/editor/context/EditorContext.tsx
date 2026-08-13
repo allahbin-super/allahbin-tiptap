@@ -1,8 +1,8 @@
 import React, { createContext, PropsWithChildren, useContext, useEffect, useState } from 'react';
-import type { TideEditor } from '../TideEditor';
+import type { ATiptapEditor } from '../ATiptapEditor';
 
 export type EditorContextType = {
-  editor: TideEditor | null;
+  editor: ATiptapEditor | null;
   fullscreen: boolean;
   setFullscreen: React.Dispatch<React.SetStateAction<boolean>>;
   editable: boolean;
@@ -20,7 +20,7 @@ export const useEditorContext = () => {
   return context;
 };
 
-export const EditorContextProvider: React.FC<PropsWithChildren<{ editor: TideEditor | null }>> = ({
+export const EditorContextProvider: React.FC<PropsWithChildren<{ editor: ATiptapEditor | null }>> = ({
   editor,
   children
 }) => {

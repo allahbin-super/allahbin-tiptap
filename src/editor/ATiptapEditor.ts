@@ -8,17 +8,17 @@ import React from 'react';
 import { mdTailToHtml, mdTitleToHtml, mdWenhaoToHtml } from '../markdown';
 
 export interface EditorEvents {
-  beforeCreate: { editor: TideEditor };
-  create: { editor: TideEditor };
-  update: { editor: TideEditor; transaction: Transaction };
-  selectionUpdate: { editor: TideEditor; transaction: Transaction };
-  transaction: { editor: TideEditor; transaction: Transaction };
-  focus: { editor: TideEditor; event: FocusEvent; transaction: Transaction };
-  blur: { editor: TideEditor; event: FocusEvent; transaction: Transaction };
+  beforeCreate: { editor: ATiptapEditor };
+  create: { editor: ATiptapEditor };
+  update: { editor: ATiptapEditor; transaction: Transaction };
+  selectionUpdate: { editor: ATiptapEditor; transaction: Transaction };
+  transaction: { editor: ATiptapEditor; transaction: Transaction };
+  focus: { editor: ATiptapEditor; event: FocusEvent; transaction: Transaction };
+  blur: { editor: ATiptapEditor; event: FocusEvent; transaction: Transaction };
   destroy: void;
 }
 
-export interface TideEditorOptions extends Omit<
+export interface ATiptapEditorOptions extends Omit<
   EditorOptions,
   | 'onBeforeCreate'
   | 'onCreate'
@@ -34,9 +34,9 @@ export interface TideEditorOptions extends Omit<
   menuEnableUndoRedo?: boolean;
   menuEnableFullscreen?: boolean;
   fullscreen?: boolean;
-  onFullscreenChange?: (fullscreen: boolean, editor: TideEditor) => void;
-  onReady?: (editor: TideEditor) => void;
-  onChange?: (doc: JSONContent, editor: TideEditor) => void;
+  onFullscreenChange?: (fullscreen: boolean, editor: ATiptapEditor) => void;
+  onReady?: (editor: ATiptapEditor) => void;
+  onChange?: (doc: JSONContent, editor: ATiptapEditor) => void;
 
   // original editor options
   onBeforeCreate: (props: EditorEvents['beforeCreate']) => void;
@@ -49,7 +49,7 @@ export interface TideEditorOptions extends Omit<
   onDestroy: (props: EditorEvents['destroy']) => void;
 }
 
-export class TideEditor extends Editor {
+export class ATiptapEditor extends Editor {
   public readOnlyEmptyView?: React.ReactNode;
 
   public readOnlyShowMenu?: boolean;
@@ -60,9 +60,9 @@ export class TideEditor extends Editor {
 
   public fullscreen: boolean;
 
-  private readonly onFullscreenChange?: TideEditorOptions['onFullscreenChange'];
+  private readonly onFullscreenChange?: ATiptapEditorOptions['onFullscreenChange'];
 
-  constructor(options: Partial<TideEditorOptions>) {
+  constructor(options: Partial<ATiptapEditorOptions>) {
     const {
       readOnlyEmptyView,
       readOnlyShowMenu = false,

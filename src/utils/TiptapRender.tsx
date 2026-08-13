@@ -1,5 +1,5 @@
 import { IATiptapProps, IContent2, ITiptapJson } from '@allahbin/tiptap';
-import { IContent } from '@allahbin/tiptap/tide';
+import { IContent } from '../editor';
 import hljs from 'highlight.js';
 import React from 'react';
 
@@ -256,12 +256,12 @@ class TiptapRender {
     return (
       <div key={item.key} className="react-renderer node-codeBlock">
         <div
-          className="tide-code-block"
+          className="atiptap-code-block"
           style={{
             whiteSpace: 'normal'
           }}
         >
-          <div className="tide-code-block__content">
+          <div className="atiptap-code-block__content">
             <pre className="hljs">
               <code style={{ whiteSpace: 'pre-wrap' }}>
                 <div style={{ whiteSpace: 'initial', textIndent: 0, fontSize: 14 }}>
@@ -365,7 +365,7 @@ class TiptapRender {
    * 渲染图片
    */
   renderImage(item: IContent) {
-    const imgClass = `tide-image tide-image__align-${item.attrs.align}`;
+    const imgClass = `atiptap-image atiptap-image__align-${item.attrs.align}`;
     return (
       <div className="react-renderer node-image" contentEditable={false} key={item.key}>
         <div
@@ -375,7 +375,7 @@ class TiptapRender {
             whiteSpace: 'normal'
           }}
         >
-          <div className="tide-image__view">
+          <div className="atiptap-image__view">
             <img
               src={item.attrs.src}
               alt=""
@@ -485,7 +485,7 @@ class TiptapRender {
 
     return (
       <div className={`atiptap_main_${this.config.renderMode}`}>
-        <div className="tide-content">
+        <div className="atiptap-content">
           <div className="tiptap ProseMirror">
             {this.json.content.map((item, index) => this.renderType(item, index))}
           </div>
