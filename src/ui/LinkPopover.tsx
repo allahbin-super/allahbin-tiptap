@@ -61,7 +61,7 @@ export const LinkPopover: React.FC<LinkPopoverProps> = ({ editor, compact = true
         onMouseDown={event => event.preventDefault()}
         onClick={() => setOpen(current => !current)}
       >
-        <LinkIcon size={15} />
+        <LinkIcon size={16} />
         {compact ? null : <span>链接</span>}
       </button>
       {open ? (

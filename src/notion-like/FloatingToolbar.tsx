@@ -123,35 +123,35 @@ export const FloatingToolbar: React.FC<{ editor: Editor | null }> = ({ editor })
           active={marks.bold}
           onClick={() => editor.chain().focus().toggleBold().run()}
         >
-          <Bold size={15} />
+          <Bold size={16} />
         </ToolbarButton>
         <ToolbarButton
           title="斜体"
           active={marks.italic}
           onClick={() => editor.chain().focus().toggleItalic().run()}
         >
-          <Italic size={15} />
+          <Italic size={16} />
         </ToolbarButton>
         <ToolbarButton
           title="下划线"
           active={marks.underline}
           onClick={() => editor.chain().focus().toggleUnderline().run()}
         >
-          <Underline size={15} />
+          <Underline size={16} />
         </ToolbarButton>
         <ToolbarButton
           title="删除线"
           active={marks.strike}
           onClick={() => editor.chain().focus().toggleStrike().run()}
         >
-          <Strikethrough size={15} />
+          <Strikethrough size={16} />
         </ToolbarButton>
         <ToolbarButton
           title="行内代码"
           active={marks.code}
           onClick={() => editor.chain().focus().toggleCode().run()}
         >
-          <Code size={15} />
+          <Code size={16} />
         </ToolbarButton>
         <div className="atiptap-notion-highlight">
           <ToolbarButton
@@ -159,7 +159,7 @@ export const FloatingToolbar: React.FC<{ editor: Editor | null }> = ({ editor })
             active={marks.highlight || highlightOpen}
             onClick={() => setHighlightOpen(open => !open)}
           >
-            <Highlighter size={15} />
+            <Highlighter size={16} />
           </ToolbarButton>
           {highlightOpen ? (
             <div className="atiptap-notion-highlight__panel">
@@ -198,21 +198,21 @@ export const FloatingToolbar: React.FC<{ editor: Editor | null }> = ({ editor })
           active={marks.alignLeft}
           onClick={() => editor.chain().focus().setTextAlign('left').run()}
         >
-          <AlignLeft size={15} />
+          <AlignLeft size={16} />
         </ToolbarButton>
         <ToolbarButton
           title="居中"
           active={marks.alignCenter}
           onClick={() => editor.chain().focus().setTextAlign('center').run()}
         >
-          <AlignCenter size={15} />
+          <AlignCenter size={16} />
         </ToolbarButton>
         <ToolbarButton
           title="右对齐"
           active={marks.alignRight}
           onClick={() => editor.chain().focus().setTextAlign('right').run()}
         >
-          <AlignRight size={15} />
+          <AlignRight size={16} />
         </ToolbarButton>
       </BubbleMenu>
       <BubbleMenu
@@ -240,21 +240,21 @@ export const FloatingToolbar: React.FC<{ editor: Editor | null }> = ({ editor })
           active={marks.imageAlign === 'left'}
           onClick={() => setImageAlign(editor, 'left')}
         >
-          <AlignLeft size={15} />
+          <AlignLeft size={16} />
         </ToolbarButton>
         <ToolbarButton
           title="居中"
           active={marks.imageAlign === 'center'}
           onClick={() => setImageAlign(editor, 'center')}
         >
-          <AlignCenter size={15} />
+          <AlignCenter size={16} />
         </ToolbarButton>
         <ToolbarButton
           title="右对齐"
           active={marks.imageAlign === 'right'}
           onClick={() => setImageAlign(editor, 'right')}
         >
-          <AlignRight size={15} />
+          <AlignRight size={16} />
         </ToolbarButton>
         <ToolbarDivider />
         <ToolbarButton
@@ -262,10 +262,10 @@ export const FloatingToolbar: React.FC<{ editor: Editor | null }> = ({ editor })
           active={marks.imageCaption}
           onClick={() => showImageCaption(editor)}
         >
-          <Captions size={15} />
+          <Captions size={16} />
         </ToolbarButton>
         <ToolbarButton title="替换" onClick={() => replaceSelectedImage(editor)}>
-          <ImagePlus size={15} />
+          <ImagePlus size={16} />
         </ToolbarButton>
         <ToolbarButton
           title="下载"
@@ -273,10 +273,10 @@ export const FloatingToolbar: React.FC<{ editor: Editor | null }> = ({ editor })
             void downloadSelectedImage(editor);
           }}
         >
-          <Download size={15} />
+          <Download size={16} />
         </ToolbarButton>
         <ToolbarButton title="删除" onClick={() => deleteSelectedImage(editor)}>
-          <Trash2 size={15} />
+          <Trash2 size={16} />
         </ToolbarButton>
       </BubbleMenu>
     </>

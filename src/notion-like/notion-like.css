@@ -33,6 +33,7 @@
   --atiptap-border-radius: 6px;
   --atiptap-border-radius-sm: 4px;
   --atiptap-border-radius-lg: 8px;
+  --atiptap-control-height: 32px;
   --atiptap-control-height-sm: 24px;
   --atiptap-font-size: 14px;
   --atiptap-font-size-sm: 12px;
@@ -535,20 +536,26 @@
   align-items: center;
   gap: 0;
   padding: 4px;
+  font-size: var(--atiptap-font-size);
+  line-height: 1.5714285714285714;
 }
 
 .atiptap-notion-bubble__btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--atiptap-control-height-sm);
-  height: var(--atiptap-control-height-sm);
+  box-sizing: border-box;
+  width: var(--atiptap-control-height);
+  height: var(--atiptap-control-height);
+  padding: 0;
   border: none;
-  border-radius: var(--atiptap-border-radius-sm);
+  border-radius: var(--atiptap-border-radius);
   background: transparent;
   color: var(--atiptap-color-text);
   cursor: pointer;
   font-family: inherit;
+  font-size: var(--atiptap-font-size);
+  line-height: 1;
   transition: var(--atiptap-motion);
 }
 
@@ -560,6 +567,14 @@
 .atiptap-notion-bubble__btn[data-active='true'] {
   background: var(--atiptap-color-primary-bg);
   color: var(--atiptap-color-primary);
+}
+
+.atiptap-notion-bubble__divider {
+  flex-shrink: 0;
+  width: 1px;
+  height: 16px;
+  margin: 0 4px;
+  background: var(--atiptap-color-split);
 }
 
 .atiptap-notion-slash-menu {
