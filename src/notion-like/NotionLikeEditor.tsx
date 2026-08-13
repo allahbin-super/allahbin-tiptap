@@ -13,7 +13,7 @@ import { createImageUploadExtensions, insertImageFiles, pickLocalImage } from '.
 import { StarterKit } from '../starter-kit';
 import { BlockDragHandle } from './BlockDragHandle';
 import { FloatingToolbar } from './FloatingToolbar';
-import { duplicateNode, moveBlock } from './block-actions';
+import { duplicateNode, moveBlock, setEditorMeta } from './block-actions';
 import {
   ImageUploadNode,
   NotionImage,
@@ -246,6 +246,7 @@ export const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
     const content = normalizeContent(value, mode);
     lastValueRef.current = mode === 'json' ? content : value || '';
     editor.commands.setContent(content, { emitUpdate: false });
+    setEditorMeta(editor, 'hideDragHandle', true);
   }, [editor, value, mode]);
 
   if (!editor) {

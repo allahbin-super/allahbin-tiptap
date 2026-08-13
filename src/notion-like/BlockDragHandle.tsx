@@ -43,6 +43,7 @@ import {
   copyNodeMarkdown,
   deleteNode,
   duplicateNode,
+  getNodeAtPos,
   insertSlashAtNode,
   isTextSelectionActive,
   moveBlock,
@@ -242,7 +243,6 @@ const turnIntoItems: TurnIntoItem[] = [
 
 /** 左侧图标打开转换菜单，右侧句柄拖拽块；空段只显示加号 */
 export const BlockDragHandle: React.FC<{ editor: Editor | null }> = ({ editor }) => {
-  const [node, setNode] = useState<ProseMirrorNode | null>(null);
   const [nodePos, setNodePos] = useState(-1);
   const [menuOpen, setMenuOpen] = useState(false);
   const [dragging, setDragging] = useState(false);
@@ -272,7 +272,8 @@ export const BlockDragHandle: React.FC<{ editor: Editor | null }> = ({ editor })
   const selectionState = useEditorState({
     editor,
     selector: ctx => ({
-      hasTextSelection: isTextSelectionActive(ctx.editor)
+      hasTextSelection: isTextSelectionActive(ctx.editor),
+      docSize: ctx.editor?.state.doc.content.size ?? 0
     })
   });
 
@@ -292,10 +293,26 @@ export const BlockDragHandle: React.FC<{ editor: Editor | null }> = ({ editor })
   }, [editor, menuOpen, isMobile]);
 
   useEffect(() => {
-    if (!editor || nodePos < 0) {
+    if (nodePos < 0) {
       return;
     }
-    const nodeDom = editor.view.nodeDOM(nodePos);
+    const docSize = selectionState?.docSize ?? 0;
+    if (nodePos > docSize) {
+      setNodePos(-1);
+      setMenuOpen(false);
+    }
+  }, [nodePos, selectionState?.docSize]);
+
+  useEffect(() => {
+    if (!editor || !getNodeAtPos(editor.state.doc, nodePos)) {
+      return;
+    }
+    let nodeDom: Node | null = null;
+    try {
+      nodeDom = editor.view.nodeDOM(nodePos) as Node | null;
+    } catch {
+      return;
+    }
     if (!(nodeDom instanceof HTMLElement)) {
       return;
     }
@@ -303,7 +320,7 @@ export const BlockDragHandle: React.FC<{ editor: Editor | null }> = ({ editor })
     return () => {
       nodeDom.classList.remove('atiptap-notion-block-active');
     };
-  }, [editor, node, nodePos]);
+  }, [editor, nodePos]);
 
   const closeMenu = useCallback(() => {
     setMenuOpen(false);
@@ -338,11 +355,8 @@ export const BlockDragHandle: React.FC<{ editor: Editor | null }> = ({ editor })
 
   const handleNodeChange = useCallback(
     ({ node: nextNode, pos }: { node: ProseMirrorNode | null; editor: Editor; pos: number }) => {
-      if (nextNode) {
-        setNode(nextNode);
-      }
-      setNodePos(pos);
-      if (pos < 0) {
+      setNodePos(typeof pos === 'number' ? pos : -1);
+      if (!nextNode || pos < 0) {
         setMenuOpen(false);
       }
     },
@@ -390,11 +404,14 @@ export const BlockDragHandle: React.FC<{ editor: Editor | null }> = ({ editor })
     return null;
   }
 
-  const TypeIcon = getBlockTypeIcon(node);
-  const isEmptyParagraph = node?.type.name === 'paragraph' && node.content.size === 0;
+  const docSize = selectionState?.docSize ?? 0;
+  const currentNode = nodePos >= 0 && nodePos <= docSize ? getNodeAtPos(editor.state.doc, nodePos) : null;
+  const currentPos = currentNode ? nodePos : -1;
+  const TypeIcon = getBlockTypeIcon(currentNode);
+  const isEmptyParagraph = currentNode?.type.name === 'paragraph' && currentNode.content.size === 0;
   const hidden = dragging || Boolean(selectionState?.hasTextSelection);
-  const canMoveUp = canMoveBlock(editor, -1, nodePos);
-  const canMoveDown = canMoveBlock(editor, 1, nodePos);
+  const canMoveUp = canMoveBlock(editor, -1, currentPos);
+  const canMoveDown = canMoveBlock(editor, 1, currentPos);
 
   const blockMenu = menuOpen ? (
     <FloatingPortal>
@@ -421,7 +438,7 @@ export const BlockDragHandle: React.FC<{ editor: Editor | null }> = ({ editor })
         );
       })}
       <div className="atiptap-notion-drag-menu__divider" />
-      {node?.type.name === 'image' ? (
+      {currentNode?.type.name === 'image' ? (
         <button
           type="button"
           className="atiptap-notion-drag-menu__item"
@@ -437,7 +454,7 @@ export const BlockDragHandle: React.FC<{ editor: Editor | null }> = ({ editor })
           下载图片
         </button>
       ) : null}
-      {node?.type.name === 'table' ? (
+      {currentNode?.type.name === 'table' ? (
         <>
           <button
             type="button"
@@ -581,7 +598,7 @@ export const BlockDragHandle: React.FC<{ editor: Editor | null }> = ({ editor })
               title="上移"
               disabled={!canMoveUp}
               onMouseDown={event => event.preventDefault()}
-              onClick={() => moveBlock(editor, -1, nodePos)}
+              onClick={() => moveBlock(editor, -1, currentPos)}
             >
               <ChevronUp size={15} />
             </button>
@@ -591,7 +608,7 @@ export const BlockDragHandle: React.FC<{ editor: Editor | null }> = ({ editor })
               title="下移"
               disabled={!canMoveDown}
               onMouseDown={event => event.preventDefault()}
-              onClick={() => moveBlock(editor, 1, nodePos)}
+              onClick={() => moveBlock(editor, 1, currentPos)}
             >
               <ChevronDown size={15} />
             </button>
@@ -601,7 +618,7 @@ export const BlockDragHandle: React.FC<{ editor: Editor | null }> = ({ editor })
                 className="atiptap-notion-drag-trigger atiptap-notion-drag-trigger--add"
                 title="插入块"
                 onMouseDown={event => event.preventDefault()}
-                onClick={() => insertSlashAtNode(editor, node, nodePos)}
+                onClick={() => insertSlashAtNode(editor, currentNode, currentPos)}
               >
                 <Plus size={15} />
               </button>
@@ -630,7 +647,7 @@ export const BlockDragHandle: React.FC<{ editor: Editor | null }> = ({ editor })
             className="atiptap-notion-drag-trigger atiptap-notion-drag-trigger--add"
             title="插入块"
             onMouseDown={event => event.preventDefault()}
-            onClick={() => insertSlashAtNode(editor, node, nodePos)}
+            onClick={() => insertSlashAtNode(editor, currentNode, currentPos)}
           >
             <Plus size={15} />
           </button>

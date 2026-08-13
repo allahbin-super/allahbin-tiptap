@@ -6,6 +6,18 @@ export function setEditorMeta(editor: Editor, key: string, value: unknown) {
   editor.view.dispatch(editor.state.tr.setMeta(key, value));
 }
 
+/** setContent 后句柄可能仍持有旧 pos，nodeAt 越界会抛 RangeError */
+export function getNodeAtPos(doc: ProseMirrorNode, pos: number): ProseMirrorNode | null {
+  if (!Number.isInteger(pos) || pos < 0 || pos > doc.content.size) {
+    return null;
+  }
+  try {
+    return doc.nodeAt(pos);
+  } catch {
+    return null;
+  }
+}
+
 export function isTextSelectionActive(editor: Editor | null): boolean {
   if (!editor) {
     return false;
@@ -18,7 +30,7 @@ export function isTextSelectionActive(editor: Editor | null): boolean {
 
 /** 选中当前块，便于转换 / 复制 / 删除命中正确节点 */
 export function selectBlockNode(editor: Editor, pos: number) {
-  const node = editor.state.doc.nodeAt(pos);
+  const node = getNodeAtPos(editor.state.doc, pos);
   if (!node) {
     return;
   }
@@ -122,9 +134,13 @@ function getMovableBlock(
 ): { pos: number; node: ProseMirrorNode } | null {
   const { selection, doc } = editor.state;
   if (typeof nodePos === 'number' && nodePos >= 0) {
-    const node = doc.nodeAt(nodePos);
+    const node = getNodeAtPos(doc, nodePos);
     if (node) {
       return { pos: nodePos, node };
+    }
+    // 赋值 html/md/json 后文档变短，旧 pos 已失效
+    if (nodePos > doc.content.size) {
+      return null;
     }
   }
 
@@ -143,11 +159,11 @@ export function canMoveBlock(editor: Editor | null, direction: -1 | 1, nodePos?:
   if (!editor || !editor.isEditable) {
     return false;
   }
-  const info = getMovableBlock(editor, nodePos);
-  if (!info) {
-    return false;
-  }
   try {
+    const info = getMovableBlock(editor, nodePos);
+    if (!info) {
+      return false;
+    }
     const $pos = editor.state.doc.resolve(info.pos);
     const index = $pos.index();
     return direction < 0 ? index > 0 : index < $pos.parent.childCount - 1;
