@@ -13,6 +13,7 @@ import { createImageUploadExtensions, insertImageFiles, pickLocalImage } from '.
 import { StarterKit } from '../starter-kit';
 import { BlockDragHandle } from './BlockDragHandle';
 import { FloatingToolbar } from './FloatingToolbar';
+import { NotionToolbar } from './NotionToolbar';
 import { duplicateNode, moveBlock, setEditorMeta } from './block-actions';
 import {
   ImageUploadNode,
@@ -78,6 +79,16 @@ export type NotionLikeEditorProps = {
   imageUploader?: UploaderFunc;
   onChange?: (value: any, editor: Editor) => void;
   onReady?: (editor: Editor) => void;
+  /**
+   * 是否显示头部快捷操作区（撤销、标题、列表、格式、对齐、图片等）
+   * @default true
+   */
+  showToolbar?: boolean;
+  /**
+   * 是否显示编辑器边框
+   * @default true
+   */
+  bordered?: boolean;
 };
 
 const getMarkdown = (editor: Editor) => {
@@ -147,7 +158,9 @@ export const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
   style,
   imageUploader,
   onChange,
-  onReady
+  onReady,
+  showToolbar = true,
+  bordered = true
 }) => {
   const onChangeRef = useRef(onChange);
   const onReadyRef = useRef(onReady);
@@ -249,12 +262,26 @@ export const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
     setEditorMeta(editor, 'hideDragHandle', true);
   }, [editor, value, mode]);
 
+  const rootClassName = classNames(
+    'atiptap-notion',
+    {
+      'atiptap-notion--bordered': bordered,
+      'atiptap-notion--toolbar': showToolbar && editable
+    },
+    className
+  );
+
   if (!editor) {
-    return <div className="atiptap-notion-loading">编辑器加载中...</div>;
+    return (
+      <div className={classNames(rootClassName, 'atiptap-notion-loading')} style={style}>
+        编辑器加载中...
+      </div>
+    );
   }
 
   return (
-    <div className={classNames('atiptap-notion', className)} style={style}>
+    <div className={rootClassName} style={style}>
+      {showToolbar ? <NotionToolbar editor={editor} /> : null}
       <BlockDragHandle editor={editor} />
       <FloatingToolbar editor={editor} />
       <TableHandle editor={editor} />

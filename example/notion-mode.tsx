@@ -116,15 +116,6 @@ const ANotionModeDemo = () => {
         <span style={{ color: 'rgba(0, 0, 0, 0.45)', fontSize: 13 }}>当前 mode = {mode}</span>
       </div>
 
-      <div
-        style={{
-          border: '1px solid #d9d9d9',
-          borderRadius: 8,
-          overflow: 'visible',
-          minHeight: 280,
-          background: '#fff'
-        }}
-      >
         <ANotion
           mode={mode}
           value={value}
@@ -135,7 +126,6 @@ const ANotionModeDemo = () => {
             syncPreviewBoxes(editor);
           }}
         />
-      </div>
 
       <div style={{ marginTop: 12 }}>
         <button

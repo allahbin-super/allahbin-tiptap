@@ -112,6 +112,11 @@ export type IATiptapProps = Omit<EditorRenderProps, 'editor'> & {
    */
   bordered?: boolean;
   /**
+   * Notion 块编辑器是否显示头部快捷操作区
+   * @default true
+   */
+  showToolbar?: boolean;
+  /**
    * @description 富文本的值 字符串或者json
    */
   value?: any;

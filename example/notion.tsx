@@ -34,42 +34,41 @@ console.log('hello notion');
 const ANotionBasicDemo = () => {
   const [markdown, setMarkdown] = useState(INITIAL_MARKDOWN);
   const [editable, setEditable] = useState(true);
+  const [showToolbar, setShowToolbar] = useState(true);
+  const [bordered, setBordered] = useState(true);
+
+  const buttonStyle: React.CSSProperties = {
+    marginRight: 8,
+    marginBottom: 12,
+    padding: '4px 12px',
+    border: '1px solid #d9d9d9',
+    borderRadius: 6,
+    cursor: 'pointer',
+    background: '#fff'
+  };
 
   return (
     <div style={{ padding: 16, color: 'rgba(0, 0, 0, 0.88)' }}>
       <p style={{ color: 'rgba(0, 0, 0, 0.45)', marginBottom: 12 }}>
-        基础用法：斜杠命令、划词菜单、块拖拽。默认按 Markdown 读写。
+        带边框的块编辑器，头部可快捷排版。也可关掉工具栏，只保留斜杠、划词和块拖拽。
       </p>
-      <button
-        type="button"
-        style={{
-          marginBottom: 12,
-          padding: '4px 12px',
-          border: '1px solid #d9d9d9',
-          borderRadius: 6,
-          cursor: 'pointer',
-          background: '#fff'
-        }}
-        onClick={() => setEditable(v => !v)}
-      >
+      <button type="button" style={buttonStyle} onClick={() => setEditable(v => !v)}>
         {editable ? '切换为只读' : '切换为编辑'}
       </button>
-      <div
-        style={{
-          border: '1px solid #d9d9d9',
-          borderRadius: 8,
-          overflow: 'visible',
-          minHeight: 420,
-          background: '#fff'
-        }}
-      >
-        <ANotion
-          value={markdown}
-          editable={editable}
-          onChange={setMarkdown}
-          imageUploader={mockImgUploader}
-        />
-      </div>
+      <button type="button" style={buttonStyle} onClick={() => setShowToolbar(v => !v)}>
+        {showToolbar ? '隐藏头部操作区' : '显示头部操作区'}
+      </button>
+      <button type="button" style={buttonStyle} onClick={() => setBordered(v => !v)}>
+        {bordered ? '无边框' : '有边框'}
+      </button>
+      <ANotion
+        value={markdown}
+        editable={editable}
+        showToolbar={showToolbar}
+        bordered={bordered}
+        onChange={setMarkdown}
+        imageUploader={mockImgUploader}
+      />
     </div>
   );
 };

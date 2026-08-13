@@ -61,12 +61,7 @@ const ANotionFormDemo = () => {
             mode="md"
             editable
             imageUploader={mockImgUploader}
-            style={{
-              minHeight: 220,
-              border: '1px solid #d9d9d9',
-              borderRadius: 6,
-              background: '#fff'
-            }}
+            style={{ minHeight: 220, background: '#fff' }}
           />
         </Form.Item>
         <Form.Item>

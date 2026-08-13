@@ -11,6 +11,9 @@ const ATiptap: React.FC<IATiptapProps> = ({
   imageUploader,
   onReady,
   style,
+  bordered,
+  showToolbar,
+  className,
   ...props
 }) => {
   if (renderMode === 'notion') {
@@ -23,6 +26,9 @@ const ATiptap: React.FC<IATiptapProps> = ({
         imageUploader={imageUploader}
         onReady={onReady}
         style={style}
+        className={className}
+        bordered={bordered}
+        showToolbar={showToolbar}
       />
     );
   }
@@ -36,6 +42,8 @@ const ATiptap: React.FC<IATiptapProps> = ({
       imageUploader={imageUploader}
       onReady={onReady}
       style={style}
+      className={className}
+      bordered={bordered}
       renderMode={renderMode}
       onChange={onChange}
     />
