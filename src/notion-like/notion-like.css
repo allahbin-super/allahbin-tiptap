@@ -530,6 +530,7 @@
 }
 
 .atiptap-notion-bubble {
+  z-index: 50;
   display: flex;
   align-items: center;
   gap: 0;
@@ -776,12 +777,22 @@
 }
 
 .atiptap-notion-highlight__swatch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 16px;
   height: 16px;
   border: 1px solid var(--atiptap-color-border);
   border-radius: 2px;
+  background: var(--atiptap-color-bg);
+  color: var(--atiptap-color-text-tertiary);
   cursor: pointer;
   padding: 0;
+}
+
+.atiptap-notion-highlight__swatch--clear:hover {
+  color: var(--atiptap-color-text);
+  border-color: var(--atiptap-color-primary-hover);
 }
 
 .atiptap-notion .ProseMirror pre code.hljs {

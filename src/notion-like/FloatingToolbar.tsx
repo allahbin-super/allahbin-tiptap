@@ -97,6 +97,7 @@ export const FloatingToolbar: React.FC<{ editor: Editor | null }> = ({ editor })
     <>
       <BubbleMenu
         editor={editor}
+        className="atiptap-notion-bubble"
         options={{ placement: 'top', offset: 8 }}
         shouldShow={({
           editor: currentEditor,
@@ -117,107 +118,106 @@ export const FloatingToolbar: React.FC<{ editor: Editor | null }> = ({ editor })
           );
         }}
       >
-        <div className="atiptap-notion-bubble">
+        <ToolbarButton
+          title="加粗"
+          active={marks.bold}
+          onClick={() => editor.chain().focus().toggleBold().run()}
+        >
+          <Bold size={15} />
+        </ToolbarButton>
+        <ToolbarButton
+          title="斜体"
+          active={marks.italic}
+          onClick={() => editor.chain().focus().toggleItalic().run()}
+        >
+          <Italic size={15} />
+        </ToolbarButton>
+        <ToolbarButton
+          title="下划线"
+          active={marks.underline}
+          onClick={() => editor.chain().focus().toggleUnderline().run()}
+        >
+          <Underline size={15} />
+        </ToolbarButton>
+        <ToolbarButton
+          title="删除线"
+          active={marks.strike}
+          onClick={() => editor.chain().focus().toggleStrike().run()}
+        >
+          <Strikethrough size={15} />
+        </ToolbarButton>
+        <ToolbarButton
+          title="行内代码"
+          active={marks.code}
+          onClick={() => editor.chain().focus().toggleCode().run()}
+        >
+          <Code size={15} />
+        </ToolbarButton>
+        <div className="atiptap-notion-highlight">
           <ToolbarButton
-            title="加粗"
-            active={marks.bold}
-            onClick={() => editor.chain().focus().toggleBold().run()}
+            title="高亮"
+            active={marks.highlight || highlightOpen}
+            onClick={() => setHighlightOpen(open => !open)}
           >
-            <Bold size={15} />
+            <Highlighter size={15} />
           </ToolbarButton>
-          <ToolbarButton
-            title="斜体"
-            active={marks.italic}
-            onClick={() => editor.chain().focus().toggleItalic().run()}
-          >
-            <Italic size={15} />
-          </ToolbarButton>
-          <ToolbarButton
-            title="下划线"
-            active={marks.underline}
-            onClick={() => editor.chain().focus().toggleUnderline().run()}
-          >
-            <Underline size={15} />
-          </ToolbarButton>
-          <ToolbarButton
-            title="删除线"
-            active={marks.strike}
-            onClick={() => editor.chain().focus().toggleStrike().run()}
-          >
-            <Strikethrough size={15} />
-          </ToolbarButton>
-          <ToolbarButton
-            title="行内代码"
-            active={marks.code}
-            onClick={() => editor.chain().focus().toggleCode().run()}
-          >
-            <Code size={15} />
-          </ToolbarButton>
-          <div className="atiptap-notion-highlight">
-            <ToolbarButton
-              title="高亮"
-              active={marks.highlight || highlightOpen}
-              onClick={() => setHighlightOpen(open => !open)}
-            >
-              <Highlighter size={15} />
-            </ToolbarButton>
-            {highlightOpen ? (
-              <div className="atiptap-notion-highlight__panel">
-                {HIGHLIGHT_COLORS.map(color => (
-                  <button
-                    key={color.value}
-                    type="button"
-                    title={color.label}
-                    className="atiptap-notion-highlight__swatch"
-                    style={{ background: color.value }}
-                    onMouseDown={event => event.preventDefault()}
-                    onClick={() => {
-                      editor.chain().focus().toggleHighlight({ color: color.value }).run();
-                      setHighlightOpen(false);
-                    }}
-                  />
-                ))}
+          {highlightOpen ? (
+            <div className="atiptap-notion-highlight__panel">
+              {HIGHLIGHT_COLORS.map(color => (
                 <button
+                  key={color.value}
                   type="button"
-                  className="atiptap-notion-highlight__clear"
+                  title={color.label}
+                  className="atiptap-notion-highlight__swatch"
+                  style={{ background: color.value }}
                   onMouseDown={event => event.preventDefault()}
                   onClick={() => {
-                    editor.chain().focus().unsetHighlight().run();
+                    editor.chain().focus().toggleHighlight({ color: color.value }).run();
                     setHighlightOpen(false);
                   }}
-                >
-                  清除
-                </button>
-              </div>
-            ) : null}
-          </div>
-          <LinkPopover editor={editor} />
-          <ToolbarDivider />
-          <ToolbarButton
-            title="左对齐"
-            active={marks.alignLeft}
-            onClick={() => editor.chain().focus().setTextAlign('left').run()}
-          >
-            <AlignLeft size={15} />
-          </ToolbarButton>
-          <ToolbarButton
-            title="居中"
-            active={marks.alignCenter}
-            onClick={() => editor.chain().focus().setTextAlign('center').run()}
-          >
-            <AlignCenter size={15} />
-          </ToolbarButton>
-          <ToolbarButton
-            title="右对齐"
-            active={marks.alignRight}
-            onClick={() => editor.chain().focus().setTextAlign('right').run()}
-          >
-            <AlignRight size={15} />
-          </ToolbarButton>
+                />
+              ))}
+              <button
+                type="button"
+                className="atiptap-notion-highlight__clear"
+                onMouseDown={event => event.preventDefault()}
+                onClick={() => {
+                  editor.chain().focus().unsetHighlight().run();
+                  setHighlightOpen(false);
+                }}
+              >
+                清除
+              </button>
+            </div>
+          ) : null}
         </div>
+        <LinkPopover editor={editor} />
+        <ToolbarDivider />
+        <ToolbarButton
+          title="左对齐"
+          active={marks.alignLeft}
+          onClick={() => editor.chain().focus().setTextAlign('left').run()}
+        >
+          <AlignLeft size={15} />
+        </ToolbarButton>
+        <ToolbarButton
+          title="居中"
+          active={marks.alignCenter}
+          onClick={() => editor.chain().focus().setTextAlign('center').run()}
+        >
+          <AlignCenter size={15} />
+        </ToolbarButton>
+        <ToolbarButton
+          title="右对齐"
+          active={marks.alignRight}
+          onClick={() => editor.chain().focus().setTextAlign('right').run()}
+        >
+          <AlignRight size={15} />
+        </ToolbarButton>
       </BubbleMenu>
       <BubbleMenu
         editor={editor}
+        className="atiptap-notion-bubble"
         options={{ placement: 'top', offset: 8 }}
         shouldShow={({
           editor: currentEditor,
@@ -235,51 +235,49 @@ export const FloatingToolbar: React.FC<{ editor: Editor | null }> = ({ editor })
           return currentEditor.isEditable && isImageSelected(currentEditor);
         }}
       >
-        <div className="atiptap-notion-bubble">
-          <ToolbarButton
-            title="左对齐"
-            active={marks.imageAlign === 'left'}
-            onClick={() => setImageAlign(editor, 'left')}
-          >
-            <AlignLeft size={15} />
-          </ToolbarButton>
-          <ToolbarButton
-            title="居中"
-            active={marks.imageAlign === 'center'}
-            onClick={() => setImageAlign(editor, 'center')}
-          >
-            <AlignCenter size={15} />
-          </ToolbarButton>
-          <ToolbarButton
-            title="右对齐"
-            active={marks.imageAlign === 'right'}
-            onClick={() => setImageAlign(editor, 'right')}
-          >
-            <AlignRight size={15} />
-          </ToolbarButton>
-          <ToolbarDivider />
-          <ToolbarButton
-            title="图注"
-            active={marks.imageCaption}
-            onClick={() => showImageCaption(editor)}
-          >
-            <Captions size={15} />
-          </ToolbarButton>
-          <ToolbarButton title="替换" onClick={() => replaceSelectedImage(editor)}>
-            <ImagePlus size={15} />
-          </ToolbarButton>
-          <ToolbarButton
-            title="下载"
-            onClick={() => {
-              void downloadSelectedImage(editor);
-            }}
-          >
-            <Download size={15} />
-          </ToolbarButton>
-          <ToolbarButton title="删除" onClick={() => deleteSelectedImage(editor)}>
-            <Trash2 size={15} />
-          </ToolbarButton>
-        </div>
+        <ToolbarButton
+          title="左对齐"
+          active={marks.imageAlign === 'left'}
+          onClick={() => setImageAlign(editor, 'left')}
+        >
+          <AlignLeft size={15} />
+        </ToolbarButton>
+        <ToolbarButton
+          title="居中"
+          active={marks.imageAlign === 'center'}
+          onClick={() => setImageAlign(editor, 'center')}
+        >
+          <AlignCenter size={15} />
+        </ToolbarButton>
+        <ToolbarButton
+          title="右对齐"
+          active={marks.imageAlign === 'right'}
+          onClick={() => setImageAlign(editor, 'right')}
+        >
+          <AlignRight size={15} />
+        </ToolbarButton>
+        <ToolbarDivider />
+        <ToolbarButton
+          title="图注"
+          active={marks.imageCaption}
+          onClick={() => showImageCaption(editor)}
+        >
+          <Captions size={15} />
+        </ToolbarButton>
+        <ToolbarButton title="替换" onClick={() => replaceSelectedImage(editor)}>
+          <ImagePlus size={15} />
+        </ToolbarButton>
+        <ToolbarButton
+          title="下载"
+          onClick={() => {
+            void downloadSelectedImage(editor);
+          }}
+        >
+          <Download size={15} />
+        </ToolbarButton>
+        <ToolbarButton title="删除" onClick={() => deleteSelectedImage(editor)}>
+          <Trash2 size={15} />
+        </ToolbarButton>
       </BubbleMenu>
     </>
   );

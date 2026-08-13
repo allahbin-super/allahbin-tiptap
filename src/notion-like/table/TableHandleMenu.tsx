@@ -1,6 +1,6 @@
 import type { Node } from '@tiptap/pm/model';
 import type { Editor } from '@tiptap/react';
-import { MoreVertical } from 'lucide-react';
+import { MoreVertical, X } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
@@ -162,6 +162,14 @@ export const TableHandleMenu: React.FC<{
             }
           />
         ))}
+        <button
+          type="button"
+          title="清除"
+          className="atiptap-notion-highlight__swatch atiptap-notion-highlight__swatch--clear"
+          onClick={() => run(() => editor.chain().focus().unsetNodeBackgroundColor().run())}
+        >
+          <X size={10} strokeWidth={2.5} />
+        </button>
       </div>
       <div className="atiptap-notion-drag-menu__label">对齐</div>
       {(['left', 'center', 'right'] as const).map(align => (

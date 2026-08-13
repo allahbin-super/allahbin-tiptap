@@ -1,5 +1,5 @@
 import type { Editor } from '@tiptap/react';
-import { Grip } from 'lucide-react';
+import { Grip, X } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
@@ -92,6 +92,14 @@ export const TableCellMenu: React.FC<{
             }
           />
         ))}
+        <button
+          type="button"
+          title="清除"
+          className="atiptap-notion-highlight__swatch atiptap-notion-highlight__swatch--clear"
+          onClick={() => run(() => editor.chain().focus().unsetNodeBackgroundColor().run())}
+        >
+          <X size={10} strokeWidth={2.5} />
+        </button>
       </div>
       {(['left', 'center', 'right'] as const).map(align => (
         <button
