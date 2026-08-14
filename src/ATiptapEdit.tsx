@@ -161,7 +161,10 @@ export type IATiptapProps = Omit<EditorRenderProps, 'editor'> & {
    */
   debug?: boolean;
   /**
-   * @description 编辑器的高度
+   * 编辑器高度。
+   * - 数字 / 带单位字符串：固定高度，内容超出后内部滚动
+   * - `'auto'`：随内容撑开，不出现内部滚动条（适合嵌在外层已滚动的抽屉 / 表单里）
+   * @default 500
    */
   height?: number | string;
   /**
@@ -310,19 +313,24 @@ const ATiptapEdit: React.FC<IATiptapProps> = ({
     }
   }, [value, isReady]);
 
+  const isAutoHeight = height === 'auto';
   const cssHeight = typeof editorHeight === 'number' ? `${editorHeight}px` : editorHeight;
 
   return (
     <div
       className={`atiptap_main_${renderMode} atiptap_bordered_${props.editable}_${props.bordered} ${
         simple ? 'atiptap_simple' : ''
-      }`}
-      style={simple ? ({ '--atiptap-editor-height': cssHeight } as React.CSSProperties) : undefined}
+      }${isAutoHeight ? ' atiptap-auto-height' : ''}`}
+      style={
+        simple && !isAutoHeight
+          ? ({ '--atiptap-editor-height': cssHeight } as React.CSSProperties)
+          : undefined
+      }
     >
       <EditorRender
         editor={editor}
         style={{
-          ...(simple ? {} : { height: editorHeight }),
+          ...(simple || isAutoHeight ? {} : { height: editorHeight }),
           ...style
         }}
         showGovBlocks={govBlocksEnabled}

@@ -67,6 +67,23 @@
   height: var(--atiptap-editor-height, 120px);
 }
 
+/* height="auto"：随内容撑开，不出现内部滚动条 */
+.atiptap-auto-height .atiptap-editor:not(.atiptap-editor--fullscreen) {
+  height: auto !important;
+  overflow: visible;
+}
+
+.atiptap-auto-height .atiptap-editor:not(.atiptap-editor--fullscreen) .atiptap-content {
+  flex: none;
+  height: auto;
+  min-height: 0;
+  overflow: visible;
+}
+
+.atiptap-auto-height.atiptap_simple .atiptap-editor:not(.atiptap-editor--fullscreen) .atiptap-content {
+  height: auto;
+}
+
 .atiptap-editor--fullscreen {
   position: fixed;
   inset: 0;

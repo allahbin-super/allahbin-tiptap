@@ -20,6 +20,7 @@ const ATiptap: React.FC<IATiptapProps> = ({
   outlineMode,
   onOutlineModeChange,
   className,
+  height,
   ...props
 }) => {
   if (renderMode === 'notion') {
@@ -41,6 +42,7 @@ const ATiptap: React.FC<IATiptapProps> = ({
         showOutline={showOutline}
         outlineMode={outlineMode}
         onOutlineModeChange={onOutlineModeChange}
+        height={height}
       />
     );
   }
@@ -58,6 +60,7 @@ const ATiptap: React.FC<IATiptapProps> = ({
       bordered={bordered}
       renderMode={renderMode}
       onChange={onChange}
+      height={height}
     />
   );
 };

@@ -90,6 +90,22 @@
   overflow: auto;
 }
 
+.atiptap-notion--auto-height {
+  height: auto;
+  overflow: visible;
+}
+
+.atiptap-notion--auto-height .atiptap-notion-body {
+  flex: none;
+  min-height: 0;
+  overflow: visible;
+}
+
+.atiptap-notion--auto-height .atiptap-notion-content {
+  min-height: 120px;
+  overflow: visible;
+}
+
 .atiptap-notion-main {
   position: relative;
   flex: 1 1 auto;

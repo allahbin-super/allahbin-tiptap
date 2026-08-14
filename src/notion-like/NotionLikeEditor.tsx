@@ -140,6 +140,13 @@ export type NotionLikeEditorProps = {
   /** 目录模式变化（图钉切换或受控更新） */
   onOutlineModeChange?: (mode: OutlineMode) => void;
   /**
+   * 编辑器高度。
+   * - 不传：由 `style` / 外层布局决定，内容区内部滚动
+   * - 数字 / 带单位字符串：固定高度
+   * - `'auto'`：随内容撑开，不出现内部滚动条
+   */
+  height?: number | string;
+  /**
    * 追加到内置扩展之后的 Tiptap Extension / Node。
    * 勿与内置名冲突（如 file / image / table）。引用变化会重建编辑器，请保持稳定。
    * 自定义块优先 mode="json"；md 模式下需自行实现 Markdown 序列化。
@@ -244,6 +251,7 @@ export const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
   showOutline = true,
   outlineMode = 'float',
   onOutlineModeChange,
+  height,
   extraExtensions,
   slashItems,
   mentionItems,
@@ -389,10 +397,13 @@ export const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
     () => mergeNotionThemeVars(cssVars as React.CSSProperties | undefined, style),
     [cssVars, style]
   );
-  const rootStyle = useMemo(
-    () => (cssVars ? { ...(cssVars as React.CSSProperties), ...style } : style),
-    [cssVars, style]
-  );
+  const rootStyle = useMemo(() => {
+    const merged = cssVars ? { ...(cssVars as React.CSSProperties), ...style } : style;
+    if (height == null || height === 'auto') {
+      return merged;
+    }
+    return { ...merged, height };
+  }, [cssVars, style, height]);
   const rootClassName = classNames(
     'atiptap-notion',
     NOTION_THEME_CLASS,
@@ -401,7 +412,8 @@ export const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
       'atiptap-notion--toolbar': showToolbar && editable,
       'atiptap-notion--outline': showOutline,
       'atiptap-notion--outline-float': showOutline && currentOutlineMode === 'float',
-      'atiptap-notion--outline-fixed': showOutline && currentOutlineMode === 'fixed'
+      'atiptap-notion--outline-fixed': showOutline && currentOutlineMode === 'fixed',
+      'atiptap-notion--auto-height': height === 'auto'
     },
     className
   );

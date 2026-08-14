@@ -36,6 +36,7 @@ import { ANotion, mockFileUploader, mockImgUploader } from '@allahbin/tiptap';
 ```
 
 - **边框**：`bordered` 控制外框，默认开启
+- **高度**：默认由外层 `style.height` 决定，内容超出后内部滚动。传 `height="auto"` 时随内容撑开，不出现内部滚动条（适合嵌在已有滚动的抽屉 / 表单里）
 - **划词栏**：加粗 / 斜体 / 下划线 / 删除线 / 行内代码 / 高亮 / 链接 Popover / 左中右对齐
 - **图片**：斜杠「图片」插入上传占位；粘贴或拖放（5MB 限制）；选中图片出现浮动栏（对齐、图注、替换、下载、删除）
 - **文件 / 视频 / 音频**：统一 `file` 节点，文档只存 URL。详见 [附件与音视频](./notion-file)
