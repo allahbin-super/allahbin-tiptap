@@ -1,14 +1,15 @@
-import { Extension } from '@tiptap/core';
+import { Extension, type AnyExtension } from '@tiptap/core';
 import { FindAndReplace } from '@tiptap/extension-find-and-replace';
 import { NodeRange } from '@tiptap/extension-node-range';
 import { Placeholder, TrailingNode } from '@tiptap/extensions';
+import type { Node as ProseMirrorNode } from '@tiptap/pm/model';
 import { TextSelection } from '@tiptap/pm/state';
 import type { EditorView } from '@tiptap/pm/view';
 import type { Editor } from '@tiptap/react';
 import { EditorContent, useEditor } from '@tiptap/react';
 import classNames from 'classnames';
 import 'highlight.js/styles/github.css';
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { UploaderFunc } from '../image-upload';
 import {
   createMediaUploadExtensions,
@@ -16,7 +17,7 @@ import {
   pickLocalImage
 } from '../image-upload';
 import { StarterKit } from '../starter-kit';
-import { BlockDragHandle } from './BlockDragHandle';
+import { BlockDragHandle, type BlockMenuExtraContext, type BlockIcon } from './BlockDragHandle';
 import { DocumentOutline, type OutlineMode } from './DocumentOutline';
 import { FloatingToolbar } from './FloatingToolbar';
 import { NotionToolbar } from './NotionToolbar';
@@ -39,6 +40,7 @@ import {
 } from './image';
 import './notion-like.css';
 import { NotionSlashMenu } from './slash/SlashSuggestionMenu';
+import type { SlashSuggestionItem } from './slash/slash-types';
 import {
   NotionTableKit,
   TableCellAttrs,
@@ -49,6 +51,7 @@ import {
   TableSelectionOverlay
 } from './table';
 
+export type { BlockIcon, BlockMenuExtraContext };
 /** 点击编辑器底部空白时，把光标落到末尾可编辑块 */
 function focusTrailingBlockOnEmptyClick(view: EditorView, event: MouseEvent): boolean {
   if (!(event.target instanceof Element) || !view.dom.contains(event.target)) {
@@ -128,6 +131,22 @@ export type NotionLikeEditorProps = {
   outlineMode?: OutlineMode;
   /** 目录模式变化（图钉切换或受控更新） */
   onOutlineModeChange?: (mode: OutlineMode) => void;
+  /**
+   * 追加到内置扩展之后的 Tiptap Extension / Node。
+   * 勿与内置名冲突（如 file / image / table）。引用变化会重建编辑器，请保持稳定。
+   * 自定义块优先 mode="json"；md 模式下需自行实现 Markdown 序列化。
+   */
+  extraExtensions?: AnyExtension[];
+  /** 追加斜杠菜单项（内置项在前）；也可传 (editor) => items */
+  slashItems?: SlashSuggestionItem[] | ((editor: Editor) => SlashSuggestionItem[]);
+  /** 工具栏额外按钮，插在图片/文件/表格之后、搜索之前 */
+  toolbarExtra?: React.ReactNode | ((editor: Editor) => React.ReactNode);
+  /** 拖拽句柄块图标；返回非 null 时覆盖内置映射 */
+  getBlockIcon?: (node: ProseMirrorNode) => BlockIcon | null;
+  /** 拖拽句柄块菜单额外项，插在「转为」与图片/表格专属项之后 */
+  blockMenuExtra?: (ctx: BlockMenuExtraContext) => React.ReactNode;
+  /** 逃生舱：自定义浮动栏等，挂在 EditorContent 旁 */
+  children?: React.ReactNode | ((editor: Editor) => React.ReactNode);
 };
 
 export type { OutlineMode };
@@ -210,7 +229,13 @@ export const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
   bordered = true,
   showOutline = true,
   outlineMode = 'float',
-  onOutlineModeChange
+  onOutlineModeChange,
+  extraExtensions,
+  slashItems,
+  toolbarExtra,
+  getBlockIcon,
+  blockMenuExtra,
+  children
 }) => {
   const onChangeRef = useRef(onChange);
   const onReadyRef = useRef(onReady);
@@ -224,6 +249,10 @@ export const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
   modeRef.current = mode;
 
   const resolvedImageUploader = imageUploader || fileUploader;
+  const resolvedExtraExtensions = useMemo(
+    () => extraExtensions ?? [],
+    [extraExtensions]
+  );
 
   useEffect(() => {
     setCurrentOutlineMode(outlineMode);
@@ -234,77 +263,80 @@ export const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
     onOutlineModeChange?.(nextMode);
   };
 
-  const editor = useEditor({
-    immediatelyRender: false,
-    editable,
-    content: normalizeContent(value, mode),
-    extensions: [
-      StarterKit.configure({
-        image: false,
-        table: false,
-        dropcursor: {
-          color: '#1677ff',
-          width: 2
-        }
-      }),
-      NotionImage.configure({
-        allowBase64: true
-      }),
-      ImageUploadNode,
-      FileNode,
-      FileUploadNode,
-      NotionTableKit,
-      TableHandleExtension,
-      TableCellAttrs,
-      NodeRange,
-      BlockShortcuts,
-      TrailingNode.configure({
-        node: 'paragraph',
-        notAfter: ['paragraph']
-      }),
-      FindAndReplace.configure({
-        injectCSS: false,
-        searchDebounceMs: 150
-      }),
-      ...createMediaUploadExtensions({
-        imageUploader: resolvedImageUploader,
-        fileUploader
-      }),
-      Placeholder.configure({
-        placeholder: ({ node }) => {
-          if (MEDIA_PLACEHOLDER_NODES.has(node.type.name)) {
-            return '';
+  const editor = useEditor(
+    {
+      immediatelyRender: false,
+      editable,
+      content: normalizeContent(value, mode),
+      extensions: [
+        StarterKit.configure({
+          image: false,
+          table: false,
+          dropcursor: {
+            color: '#1677ff',
+            width: 2
           }
-          return placeholder;
+        }),
+        NotionImage.configure({
+          allowBase64: true
+        }),
+        ImageUploadNode,
+        FileNode,
+        FileUploadNode,
+        NotionTableKit,
+        TableHandleExtension,
+        TableCellAttrs,
+        NodeRange,
+        BlockShortcuts,
+        TrailingNode.configure({
+          node: 'paragraph',
+          notAfter: ['paragraph']
+        }),
+        FindAndReplace.configure({
+          injectCSS: false,
+          searchDebounceMs: 150
+        }),
+        ...createMediaUploadExtensions({
+          imageUploader: resolvedImageUploader,
+          fileUploader
+        }),
+        Placeholder.configure({
+          placeholder: ({ node }) => {
+            if (MEDIA_PLACEHOLDER_NODES.has(node.type.name)) {
+              return '';
+            }
+            return placeholder;
+          },
+          emptyNodeClass: ({ node }) => {
+            if (MEDIA_PLACEHOLDER_NODES.has(node.type.name)) {
+              return '';
+            }
+            return 'is-empty with-slash';
+          },
+          showOnlyCurrent: true
+        }),
+        ...resolvedExtraExtensions
+      ],
+      editorProps: {
+        attributes: {
+          class: 'atiptap-notion-prosemirror',
+          spellcheck: 'false'
         },
-        emptyNodeClass: ({ node }) => {
-          if (MEDIA_PLACEHOLDER_NODES.has(node.type.name)) {
-            return '';
-          }
-          return 'is-empty with-slash';
-        },
-        showOnlyCurrent: true
-      })
-    ],
-    editorProps: {
-      attributes: {
-        class: 'atiptap-notion-prosemirror',
-        spellcheck: 'false'
+        handleClick: (view, _pos, event) => focusTrailingBlockOnEmptyClick(view, event)
       },
-      handleClick: (view, _pos, event) => focusTrailingBlockOnEmptyClick(view, event)
+      onCreate: ({ editor: currentEditor }) => {
+        currentEditor.storage.imageUploader.requestUrlInsert = () => setImageUrlOpen(true);
+        lastValueRef.current = getValueByMode(currentEditor, modeRef.current);
+        onReadyRef.current?.(currentEditor);
+      },
+      onUpdate: ({ editor: currentEditor }) => {
+        const nextValue = getValueByMode(currentEditor, modeRef.current);
+        lastValueRef.current = nextValue;
+        onChangeRef.current?.(nextValue, currentEditor);
+      }
     },
-    onCreate: ({ editor: currentEditor }) => {
-      currentEditor.storage.imageUploader.requestUrlInsert = () => setImageUrlOpen(true);
-      lastValueRef.current = getValueByMode(currentEditor, modeRef.current);
-      onReadyRef.current?.(currentEditor);
-    },
-    onUpdate: ({ editor: currentEditor }) => {
-      const nextValue = getValueByMode(currentEditor, modeRef.current);
-      lastValueRef.current = nextValue;
-      onChangeRef.current?.(nextValue, currentEditor);
-    }
-  });
-
+    [resolvedExtraExtensions]
+  );
   useLayoutEffect(() => {
     if (!editor || editor.isDestroyed) {
       return;
@@ -361,7 +393,9 @@ export const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
       onFileClick={onFileClick}
     >
       <div className={rootClassName} style={style}>
-        {showToolbar && editable ? <NotionToolbar editor={editor} /> : null}
+        {showToolbar && editable ? (
+          <NotionToolbar editor={editor} extra={toolbarExtra} />
+        ) : null}
         <div className="atiptap-notion-body">
           {showOutline ? (
             <DocumentOutline
@@ -373,14 +407,19 @@ export const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
           <div className="atiptap-notion-main">
             {editable ? (
               <>
-                <BlockDragHandle editor={editor} />
+                <BlockDragHandle
+                  editor={editor}
+                  getBlockIcon={getBlockIcon}
+                  blockMenuExtra={blockMenuExtra}
+                />
                 <FloatingToolbar editor={editor} />
                 <TableHandle editor={editor} />
                 <TableExtendButtons editor={editor} />
                 <TableSelectionOverlay editor={editor} cellMenu={TableCellMenu} />
-                <NotionSlashMenu editor={editor} />
+                <NotionSlashMenu editor={editor} slashItems={slashItems} />
               </>
             ) : null}
+            {typeof children === 'function' ? children(editor) : children}
             {imageUrlOpen ? (
               <div className="atiptap-notion-image-url">
                 <input

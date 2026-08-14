@@ -128,8 +128,14 @@ const ToolbarDropdown: React.FC<{
   );
 };
 
+export type NotionToolbarProps = {
+  editor: Editor;
+  /** 插在图片/文件/表格之后、搜索之前 */
+  extra?: React.ReactNode | ((editor: Editor) => React.ReactNode);
+};
+
 /** 头部快捷操作区，能力对齐 Tiptap Simple Editor，视觉走 antd token */
-export const NotionToolbar: React.FC<{ editor: Editor }> = ({ editor }) => {
+export const NotionToolbar: React.FC<NotionToolbarProps> = ({ editor, extra }) => {
   const [openMenu, setOpenMenu] = useState<ToolbarMenu>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const marks = useEditorState({
@@ -415,6 +421,7 @@ export const NotionToolbar: React.FC<{ editor: Editor }> = ({ editor }) => {
           >
             <Table size={16} />
           </ToolbarButton>
+          {typeof extra === 'function' ? extra(editor) : extra}
         </div>
         <span className="atiptap-notion-toolbar__spacer" />
         <SearchReplacePanel editor={editor} open={searchOpen} onOpenChange={setSearchOpen} />

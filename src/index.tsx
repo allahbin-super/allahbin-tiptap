@@ -4,14 +4,18 @@ export type { IATiptapProps } from './ATiptapEdit';
 export { default as ANotion } from './ANotion';
 export type { IANotionProps } from './ANotion';
 export type {
+  BlockIcon,
+  BlockMenuExtraContext,
   FileKind,
   FileNodeInfo,
   FileNodeRenderProps,
   FileRenderers,
   FileUploadAcceptPreset,
   NotionContentMode,
-  OutlineMode
+  OutlineMode,
+  SlashSuggestionItem
 } from './notion-like';
+export { getSlashMenuItems } from './notion-like';
 
 export { ATiptapEditor } from './editor';
 export type { ATiptapEditorOptions, IContent, IContent2, IMark, ITiptapJson } from './editor';

@@ -54,7 +54,20 @@ import {
 import { downloadSelectedImage } from './image';
 import { clearEntireTable, fitTableToWidth, setTableAlign } from './table';
 
-type BlockIcon = React.ComponentType<{ className?: string; size?: number }>;
+export type BlockIcon = React.ComponentType<{ className?: string; size?: number }>;
+
+export type BlockMenuExtraContext = {
+  editor: Editor;
+  node: ProseMirrorNode;
+  pos: number;
+  close: () => void;
+};
+
+export type BlockDragHandleProps = {
+  editor: Editor | null;
+  getBlockIcon?: (node: ProseMirrorNode) => BlockIcon | null;
+  blockMenuExtra?: (ctx: BlockMenuExtraContext) => React.ReactNode;
+};
 
 const DRAG_HANDLE_GAP = 8;
 const MENU_VIEWPORT_PADDING = 12;
@@ -112,9 +125,17 @@ const NESTED_DRAG_OPTIONS = {
   ]
 };
 
-function getBlockTypeIcon(node: ProseMirrorNode | null): BlockIcon | null {
+function getBlockTypeIcon(
+  node: ProseMirrorNode | null,
+  getBlockIcon?: (node: ProseMirrorNode) => BlockIcon | null
+): BlockIcon | null {
   if (!node) {
     return null;
+  }
+
+  const customIcon = getBlockIcon?.(node);
+  if (customIcon) {
+    return customIcon;
   }
 
   switch (node.type.name) {
@@ -246,7 +267,11 @@ const turnIntoItems: TurnIntoItem[] = [
 ];
 
 /** 左侧图标打开转换菜单，右侧句柄拖拽块；空段只显示加号 */
-export const BlockDragHandle: React.FC<{ editor: Editor | null }> = ({ editor }) => {
+export const BlockDragHandle: React.FC<BlockDragHandleProps> = ({
+  editor,
+  getBlockIcon,
+  blockMenuExtra
+}) => {
   const [nodePos, setNodePos] = useState(-1);
   const [menuOpen, setMenuOpen] = useState(false);
   const [dragging, setDragging] = useState(false);
@@ -413,7 +438,7 @@ export const BlockDragHandle: React.FC<{ editor: Editor | null }> = ({ editor })
   const currentNode =
     nodePos >= 0 && nodePos <= docSize ? getNodeAtPos(editor.state.doc, nodePos) : null;
   const currentPos = currentNode ? nodePos : -1;
-  const TypeIcon = getBlockTypeIcon(currentNode);
+  const TypeIcon = getBlockTypeIcon(currentNode, getBlockIcon);
   const isEmptyParagraph = currentNode?.type.name === 'paragraph' && currentNode.content.size === 0;
   const hidden = dragging || Boolean(selectionState?.hasTextSelection);
   const canMoveUp = canMoveBlock(editor, -1, currentPos);
@@ -528,6 +553,14 @@ export const BlockDragHandle: React.FC<{ editor: Editor | null }> = ({ editor })
             </button>
           </>
         ) : null}
+        {currentNode && blockMenuExtra
+          ? blockMenuExtra({
+              editor,
+              node: currentNode,
+              pos: currentPos,
+              close: closeMenu
+            })
+          : null}
         <button
           type="button"
           className="atiptap-notion-drag-menu__item"

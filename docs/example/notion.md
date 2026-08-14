@@ -43,7 +43,7 @@ import { ANotion, mockFileUploader, mockImgUploader } from '@allahbin/tiptap';
 - **块操作**：转为标题/列表/引用/代码块/表格/分割线；复制 Markdown；`Mod+D` 创建副本；窄屏上移 / 下移；表格块可适应宽度 / 清空
 - **代码块**：lowlight 语法高亮；复制内容为 Markdown
 
-更多示例见侧边栏：[数据模式](./notion-mode)、[表单联动](./notion-form)、[附件与音视频](./notion-file)。
+更多示例见侧边栏：[数据模式](./notion-mode)、[表单联动](./notion-form)、[附件与音视频](./notion-file)、[自定义节点](./notion-extend)。
 
 ## 基础用法
 

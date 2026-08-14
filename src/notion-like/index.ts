@@ -1,4 +1,5 @@
 export { BlockDragHandle } from './BlockDragHandle';
+export type { BlockDragHandleProps, BlockIcon, BlockMenuExtraContext } from './BlockDragHandle';
 export { DocumentOutline } from './DocumentOutline';
 export type { OutlineHeading, OutlineMode } from './DocumentOutline';
 export { FloatingToolbar } from './FloatingToolbar';
@@ -21,7 +22,9 @@ export type {
   FileUploadAcceptPreset
 } from './file';
 export { ImageUploadNode, NotionImage } from './image';
-export { NotionSlashMenu } from './slash/SlashSuggestionMenu';
+export { NotionSlashMenu, SlashSuggestionMenu } from './slash/SlashSuggestionMenu';
+export { getSlashMenuItems } from './slash/slash-items';
+export type { SlashMenuRenderProps, SlashSuggestionItem } from './slash/slash-types';
 export {
   NotionTableKit,
   TableCellAttrs,

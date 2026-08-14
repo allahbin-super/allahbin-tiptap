@@ -267,7 +267,13 @@ export const SlashMenuList: React.FC<SlashMenuRenderProps> = ({
   return <div className="atiptap-notion-slash-list">{renderedItems}</div>;
 };
 
-export const NotionSlashMenu: React.FC<{ editor: Editor | null }> = ({ editor }) => {
+export type NotionSlashMenuProps = {
+  editor: Editor | null;
+  /** 追加到内置斜杠项之后 */
+  slashItems?: SlashSuggestionItem[] | ((editor: Editor) => SlashSuggestionItem[]);
+};
+
+export const NotionSlashMenu: React.FC<NotionSlashMenuProps> = ({ editor, slashItems }) => {
   if (!editor) {
     return null;
   }
@@ -278,9 +284,14 @@ export const NotionSlashMenu: React.FC<{ editor: Editor | null }> = ({ editor })
       char="/"
       pluginKey="atiptapNotionSlash"
       decorationClass="atiptap-notion-slash-decoration"
-      items={({ query, editor: currentEditor }) =>
-        filterSuggestionItems(getSlashMenuItems(currentEditor), query)
-      }
+      items={({ query, editor: currentEditor }) => {
+        const builtIn = getSlashMenuItems(currentEditor);
+        const custom =
+          typeof slashItems === 'function'
+            ? slashItems(currentEditor)
+            : slashItems ?? [];
+        return filterSuggestionItems([...builtIn, ...custom], query);
+      }}
     >
       {props => <SlashMenuList {...props} />}
     </SlashSuggestionMenu>

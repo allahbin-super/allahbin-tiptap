@@ -44,6 +44,17 @@ export type IRenderConfig = {
   fileRenderers?: FileRenderers;
   /** 文件块点击 */
   onFileClick?: (info: FileNodeInfo, event: React.MouseEvent) => void;
+  /**
+   * 按节点 type 自定义只读渲染（优先于内置分支）。
+   * helpers.renderContent 可递归渲染子内容。
+   */
+  nodeRenderers?: Record<
+    string,
+    (
+      item: IContent,
+      helpers: { renderContent: (content: any[]) => React.ReactNode }
+    ) => React.ReactNode
+  >;
 };
 
 /**
@@ -504,7 +515,7 @@ class TiptapRender {
     }
     return <p key={item.key || item.type + key}>{this.renderContent(item.content)}</p>;
   }
-  renderContent(content: any[]) {
+  renderContent(content: any[]): React.ReactNode {
     if (!content || !Array.isArray(content)) {
       return null;
     }
@@ -534,7 +545,13 @@ class TiptapRender {
     });
   }
 
-  renderType(item: IContent, index: number) {
+  renderType(item: IContent, index: number): React.ReactNode {
+    const customRenderer = this.config.nodeRenderers?.[item.type];
+    if (customRenderer) {
+      return customRenderer(item, {
+        renderContent: (content: any[]) => this.renderContent(content)
+      });
+    }
     if (item.type === 'hardBreak') {
       return this.renderHardBreak(item);
     }
