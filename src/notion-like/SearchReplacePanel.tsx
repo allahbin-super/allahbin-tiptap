@@ -84,7 +84,8 @@ export const SearchReplacePanel: React.FC<{
   }, [onOpenChange]);
 
   useEffect(() => {
-    setPortalRoot(buttonRef.current?.closest('.atiptap-notion-toolbar-wrap') ?? null);
+    const wrap = buttonRef.current?.closest('.atiptap-notion-toolbar-wrap');
+    setPortalRoot(wrap instanceof HTMLElement ? wrap : null);
   }, []);
 
   if (!state) {

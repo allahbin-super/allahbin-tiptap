@@ -1,6 +1,6 @@
 {
   "name": "@allahbin/tiptap",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "基于tiptap的中文文章编辑器",
   "homepage": "https://github.com/Tzng/allahbin-tiptap",
   "license": "MIT",
