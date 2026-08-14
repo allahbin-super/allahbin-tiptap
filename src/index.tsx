@@ -3,6 +3,7 @@ export type { IATiptapProps } from './ATiptapEdit';
 
 export { default as ANotion } from './ANotion';
 export type { IANotionProps } from './ANotion';
+export { NOTION_THEME_CLASS, getSlashMenuItems, useNotionThemeRootProps } from './notion-like';
 export type {
   BlockIcon,
   BlockMenuExtraContext,
@@ -12,10 +13,10 @@ export type {
   FileRenderers,
   FileUploadAcceptPreset,
   NotionContentMode,
+  NotionCssVars,
   OutlineMode,
   SlashSuggestionItem
 } from './notion-like';
-export { getSlashMenuItems } from './notion-like';
 
 export { ATiptapEditor } from './editor';
 export type { ATiptapEditorOptions, IContent, IContent2, IMark, ITiptapJson } from './editor';
@@ -33,4 +34,3 @@ export { default as TiptapRenderFactory } from './utils/TiptapRenderFactory';
 import ATiptap from './ATiptap';
 
 export default ATiptap;
-

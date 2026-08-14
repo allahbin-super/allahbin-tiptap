@@ -3,6 +3,7 @@ import { TableMap } from '@tiptap/pm/tables';
 import type { Editor } from '@tiptap/react';
 import { Plus } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useNotionThemeClassName, useNotionThemeStyle } from '../notion-theme';
 import type { Orientation } from './tiptap-table-utils';
 import {
   EMPTY_CELL_HEIGHT,
@@ -124,6 +125,10 @@ export const TableExtendButtons: React.FC<{ editor: Editor | null }> = ({ editor
     Boolean(state?.showAddOrRemoveRowsButton),
     state?.referencePosTable || null
   );
+  const rowButtonStyle = useNotionThemeStyle(rowButton.style);
+  const columnButtonStyle = useNotionThemeStyle(columnButton.style);
+  const rowButtonClassName = useNotionThemeClassName();
+  const columnButtonClassName = useNotionThemeClassName();
 
   const freeze = useCallback(() => editor?.commands.freezeHandles(), [editor]);
   const unfreeze = useCallback(() => editor?.commands.unfreezeHandles(), [editor]);
@@ -136,7 +141,7 @@ export const TableExtendButtons: React.FC<{ editor: Editor | null }> = ({ editor
     <>
       {state.showAddOrRemoveRowsButton && rowButton.isMounted ? (
         <FloatingPortal>
-          <div ref={rowButton.ref} style={rowButton.style}>
+          <div ref={rowButton.ref} className={rowButtonClassName} style={rowButtonStyle}>
             <ExtendButton
               editor={editor}
               orientation="row"
@@ -148,7 +153,7 @@ export const TableExtendButtons: React.FC<{ editor: Editor | null }> = ({ editor
       ) : null}
       {state.showAddOrRemoveColumnsButton && columnButton.isMounted ? (
         <FloatingPortal>
-          <div ref={columnButton.ref} style={columnButton.style}>
+          <div ref={columnButton.ref} className={columnButtonClassName} style={columnButtonStyle}>
             <ExtendButton
               editor={editor}
               orientation="column"

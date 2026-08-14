@@ -8,6 +8,7 @@ import {
   type SuggestionProps
 } from '@tiptap/suggestion';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useNotionThemeClassName, useNotionThemeStyle } from '../notion-theme';
 import { getSlashMenuItems } from './slash-items';
 import type {
   SlashMenuRenderProps,
@@ -61,6 +62,8 @@ export const SlashSuggestionMenu: React.FC<SlashSuggestionMenuProps> = ({
     },
     ...floatingOptions
   });
+  const themeClassName = useNotionThemeClassName('atiptap-notion-slash-menu');
+  const themeStyle = useNotionThemeStyle(style);
 
   const suggestionPropsRef = useRef(suggestionProps);
 
@@ -162,10 +165,10 @@ export const SlashSuggestionMenu: React.FC<SlashSuggestionMenuProps> = ({
     <FloatingPortal>
       <div
         ref={ref}
-        style={style}
         {...getFloatingProps()}
         data-selector={selector}
-        className="atiptap-notion-slash-menu"
+        className={themeClassName}
+        style={themeStyle}
         role="listbox"
         aria-label="斜杠命令"
         onPointerDown={event => event.preventDefault()}
@@ -287,9 +290,7 @@ export const NotionSlashMenu: React.FC<NotionSlashMenuProps> = ({ editor, slashI
       items={({ query, editor: currentEditor }) => {
         const builtIn = getSlashMenuItems(currentEditor);
         const custom =
-          typeof slashItems === 'function'
-            ? slashItems(currentEditor)
-            : slashItems ?? [];
+          typeof slashItems === 'function' ? slashItems(currentEditor) : (slashItems ?? []);
         return filterSuggestionItems([...builtIn, ...custom], query);
       }}
     >

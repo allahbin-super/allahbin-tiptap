@@ -4,7 +4,7 @@ export { DocumentOutline } from './DocumentOutline';
 export type { OutlineHeading, OutlineMode } from './DocumentOutline';
 export { FloatingToolbar } from './FloatingToolbar';
 export { NotionLikeEditor, default } from './NotionLikeEditor';
-export type { NotionContentMode, NotionLikeEditorProps } from './NotionLikeEditor';
+export type { NotionContentMode, NotionCssVars, NotionLikeEditorProps } from './NotionLikeEditor';
 export { SearchReplacePanel } from './SearchReplacePanel';
 export {
   FileNode,
@@ -22,6 +22,12 @@ export type {
   FileUploadAcceptPreset
 } from './file';
 export { ImageUploadNode, NotionImage } from './image';
+export {
+  NOTION_THEME_CLASS,
+  useNotionThemeClassName,
+  useNotionThemeRootProps,
+  useNotionThemeStyle
+} from './notion-theme';
 export { NotionSlashMenu, SlashSuggestionMenu } from './slash/SlashSuggestionMenu';
 export { getSlashMenuItems } from './slash/slash-items';
 export type { SlashMenuRenderProps, SlashSuggestionItem } from './slash/slash-types';

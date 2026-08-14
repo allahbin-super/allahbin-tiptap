@@ -38,7 +38,7 @@ import {
   Trash2,
   Type
 } from 'lucide-react';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   canMoveBlock,
   copyNodeMarkdown,
@@ -52,6 +52,7 @@ import {
   setEditorMeta
 } from './block-actions';
 import { downloadSelectedImage } from './image';
+import { useNotionThemeClassName, useNotionThemeStyle } from './notion-theme';
 import { clearEntireTable, fitTableToWidth, setTableAlign } from './table';
 
 export type BlockIcon = React.ComponentType<{ className?: string; size?: number }>;
@@ -278,6 +279,7 @@ export const BlockDragHandle: React.FC<BlockDragHandleProps> = ({
   const [isMobile, setIsMobile] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const dragGroupRef = useRef<HTMLDivElement>(null);
   const { refs, floatingStyles } = useFloating({
     open: menuOpen,
     placement: 'right-start',
@@ -297,6 +299,22 @@ export const BlockDragHandle: React.FC<BlockDragHandleProps> = ({
   });
   const setTriggerRef = useMergeRefs([triggerRef, refs.setReference]);
   const setMenuRef = useMergeRefs([menuRef, refs.setFloating]);
+  const dragClassName = useNotionThemeClassName('atiptap-notion-drag');
+  const dragStyle = useNotionThemeStyle();
+  const menuClassName = useNotionThemeClassName('atiptap-notion-drag-menu');
+  const menuStyle = useNotionThemeStyle(floatingStyles);
+
+  useLayoutEffect(() => {
+    const host = dragGroupRef.current?.parentElement;
+    if (!(host instanceof HTMLElement) || !dragStyle) {
+      return;
+    }
+    Object.entries(dragStyle).forEach(([key, value]) => {
+      if (key.startsWith('--') && value !== undefined && value !== null) {
+        host.style.setProperty(key, String(value));
+      }
+    });
+  }, [dragStyle]);
 
   const selectionState = useEditorState({
     editor,
@@ -446,7 +464,7 @@ export const BlockDragHandle: React.FC<BlockDragHandleProps> = ({
 
   const blockMenu = menuOpen ? (
     <FloatingPortal>
-      <div ref={setMenuRef} className="atiptap-notion-drag-menu" role="menu" style={floatingStyles}>
+      <div ref={setMenuRef} className={menuClassName} role="menu" style={menuStyle}>
         <div className="atiptap-notion-drag-menu__label">转为</div>
         {turnIntoItems.map(item => {
           const ItemIcon = item.icon;
@@ -607,7 +625,7 @@ export const BlockDragHandle: React.FC<BlockDragHandleProps> = ({
   return (
     <DragHandle
       editor={editor}
-      className="atiptap-notion-drag"
+      className={dragClassName}
       nested={NESTED_DRAG_OPTIONS}
       computePositionConfig={DRAG_POSITION_CONFIG}
       onNodeChange={handleNodeChange}
@@ -615,9 +633,11 @@ export const BlockDragHandle: React.FC<BlockDragHandleProps> = ({
       onElementDragEnd={handleDragEnd}
     >
       <div
+        ref={dragGroupRef}
         className="atiptap-notion-drag-group"
         style={
           {
+            ...dragStyle,
             '--drag-handle-main-axis-offset': `${DRAG_HANDLE_GAP}px`,
             ...(hidden ? { opacity: 0, pointerEvents: 'none' } : {})
           } as React.CSSProperties

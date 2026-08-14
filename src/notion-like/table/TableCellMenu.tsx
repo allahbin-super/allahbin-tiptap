@@ -2,6 +2,7 @@ import type { Editor } from '@tiptap/react';
 import { Grip, X } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useNotionThemeClassName, useNotionThemeStyle } from '../notion-theme';
 import {
   canMergeCells,
   canSplitCell,
@@ -26,6 +27,9 @@ export const TableCellMenu: React.FC<{
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const menuClassName = useNotionThemeClassName('atiptap-notion-drag-menu');
+  const menuStyle = useNotionThemeStyle({ top: menuPos.top, left: menuPos.left });
+  const cellMenuClassName = useNotionThemeClassName('atiptap-notion-table-cellmenu');
 
   useEffect(() => {
     if (!open) {
@@ -54,12 +58,7 @@ export const TableCellMenu: React.FC<{
   };
 
   const menu = (
-    <div
-      ref={menuRef}
-      className="atiptap-notion-drag-menu"
-      role="menu"
-      style={{ top: menuPos.top, left: menuPos.left }}
-    >
+    <div ref={menuRef} className={menuClassName} role="menu" style={menuStyle}>
       {canMergeCells(editor) ? (
         <button
           type="button"
@@ -136,7 +135,7 @@ export const TableCellMenu: React.FC<{
       <button
         ref={triggerRef}
         type="button"
-        className="atiptap-notion-table-cellmenu"
+        className={cellMenuClassName}
         data-open={open ? 'true' : 'false'}
         title="单元格操作"
         onMouseDown={event => event.preventDefault()}

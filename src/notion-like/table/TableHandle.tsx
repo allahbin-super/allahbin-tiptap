@@ -1,6 +1,7 @@
 import { FloatingPortal } from '@floating-ui/react';
 import type { Editor } from '@tiptap/react';
 import React, { useCallback, useMemo, useState } from 'react';
+import { useNotionThemeClassName, useNotionThemeStyle } from '../notion-theme';
 import { TableHandleMenu } from './TableHandleMenu';
 import { colDragStart, dragEnd, rowDragStart } from './table-handle-plugin';
 import { useTableHandlePositioning } from './use-table-handle-positioning';
@@ -28,6 +29,18 @@ export const TableHandle: React.FC<{ editor: Editor | null }> = ({ editor }) => 
     state?.referencePosCell || null,
     state?.referencePosTable || null,
     draggingState
+  );
+  const rowHandleStyle = useNotionThemeStyle(rowHandle.style);
+  const colHandleStyle = useNotionThemeStyle(colHandle.style);
+  const rowHandleClassName = useNotionThemeClassName(
+    `atiptap-notion-table-handle atiptap-notion-table-handle--row${
+      menuOpen === 'row' ? ' is-open' : ''
+    }${state?.draggingState?.draggedCellOrientation === 'row' ? ' is-dragging' : ''}`
+  );
+  const colHandleClassName = useNotionThemeClassName(
+    `atiptap-notion-table-handle atiptap-notion-table-handle--col${
+      menuOpen === 'column' ? ' is-open' : ''
+    }${state?.draggingState?.draggedCellOrientation === 'col' ? ' is-dragging' : ''}`
   );
 
   const onRowDragStart = useCallback((event: React.DragEvent) => {
@@ -63,10 +76,8 @@ export const TableHandle: React.FC<{ editor: Editor | null }> = ({ editor }) => 
         <FloatingPortal>
           <div
             ref={rowHandle.ref}
-            className={`atiptap-notion-table-handle atiptap-notion-table-handle--row${
-              menuOpen === 'row' ? ' is-open' : ''
-            }${state.draggingState?.draggedCellOrientation === 'row' ? ' is-dragging' : ''}`}
-            style={rowHandle.style}
+            className={rowHandleClassName}
+            style={rowHandleStyle}
             draggable
             onDragStart={onRowDragStart}
             onDragEnd={dragEnd}
@@ -90,10 +101,8 @@ export const TableHandle: React.FC<{ editor: Editor | null }> = ({ editor }) => 
         <FloatingPortal>
           <div
             ref={colHandle.ref}
-            className={`atiptap-notion-table-handle atiptap-notion-table-handle--col${
-              menuOpen === 'column' ? ' is-open' : ''
-            }${state.draggingState?.draggedCellOrientation === 'col' ? ' is-dragging' : ''}`}
-            style={colHandle.style}
+            className={colHandleClassName}
+            style={colHandleStyle}
             draggable
             onDragStart={onColDragStart}
             onDragEnd={dragEnd}

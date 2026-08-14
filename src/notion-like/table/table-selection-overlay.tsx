@@ -5,6 +5,7 @@ import { CellSelection, cellAround } from '@tiptap/pm/tables';
 import type { EditorView } from '@tiptap/pm/view';
 import type { Editor } from '@tiptap/react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useNotionThemeClassName, useNotionThemeStyle } from '../notion-theme';
 import { onScrollParents } from '../scroll-parents';
 import { domCellAround, rectEq } from './tiptap-table-utils';
 import { useResizeOverlay } from './use-resize-overlay';
@@ -246,6 +247,12 @@ export const TableSelectionOverlay: React.FC<TableSelectionOverlayProps> = ({
     strategy: 'fixed',
     whileElementsMounted: autoUpdate
   });
+  const overlayClassName = useNotionThemeClassName('atiptap-notion-table-overlay');
+  const overlayStyle = useNotionThemeStyle({
+    ...floatingStyles,
+    pointerEvents: 'none',
+    zIndex: 10
+  });
 
   useEffect(() => {
     if (selectionRect) {
@@ -430,15 +437,8 @@ export const TableSelectionOverlay: React.FC<TableSelectionOverlayProps> = ({
 
   return (
     <FloatingPortal>
-      <div
-        ref={refs.setFloating}
-        style={{
-          ...floatingStyles,
-          pointerEvents: 'none',
-          zIndex: 10
-        }}
-      >
-        <div className="atiptap-notion-table-overlay">
+      <div ref={refs.setFloating} style={overlayStyle}>
+        <div className={overlayClassName}>
           <div
             style={{
               position: 'absolute',

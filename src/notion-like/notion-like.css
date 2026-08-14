@@ -1,31 +1,31 @@
-/* 模仿 Ant Design 5 默认主题（未接入 antd，仅对齐 token） */
-.atiptap-notion,
-.atiptap-notion-drag,
-.atiptap-notion-drag-menu,
-.atiptap-notion-slash-menu,
-.atiptap-notion-slash-list,
-.atiptap-notion-bubble,
-.atiptap-notion-table-handle,
-.atiptap-notion-table-extend,
-.atiptap-notion-table-cellmenu,
-.atiptap-notion-table-overlay {
+/* 默认 token 放在 :where(:root)，特异度为 0，业务 :root / .atiptap-theme 均可覆盖 */
+:where(:root) {
   --atiptap-color-primary: #1677ff;
   --atiptap-color-primary-hover: #4096ff;
   --atiptap-color-primary-bg: #e6f4ff;
   --atiptap-color-primary-border: #91caff;
+  --atiptap-color-primary-selection: color-mix(
+    in srgb,
+    var(--atiptap-color-primary) 8%,
+    transparent
+  );
   --atiptap-color-error: #ff4d4f;
   --atiptap-color-error-bg: #fff2f0;
   --atiptap-color-text: rgba(0, 0, 0, 0.88);
   --atiptap-color-text-secondary: rgba(0, 0, 0, 0.65);
   --atiptap-color-text-tertiary: rgba(0, 0, 0, 0.45);
   --atiptap-color-text-quaternary: rgba(0, 0, 0, 0.25);
+  --atiptap-color-text-light: #fff;
   --atiptap-color-border: #d9d9d9;
   --atiptap-color-border-secondary: #f0f0f0;
   --atiptap-color-split: rgba(5, 5, 5, 0.06);
   --atiptap-color-bg: #fff;
   --atiptap-color-bg-layout: #f5f5f5;
   --atiptap-color-bg-spotlight: #fafafa;
+  --atiptap-color-bg-inverse: #000;
   --atiptap-color-fill: rgba(0, 0, 0, 0.04);
+  --atiptap-color-search-bg: #fff1b8;
+  --atiptap-color-search-current: #ffc53d;
   --atiptap-border-radius: 6px;
   --atiptap-border-radius-sm: 4px;
   --atiptap-border-radius-lg: 8px;
@@ -37,7 +37,10 @@
   --atiptap-box-shadow:
     0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 3px 6px -4px rgba(0, 0, 0, 0.12),
     0 9px 28px 8px rgba(0, 0, 0, 0.05);
+}
 
+.atiptap-notion,
+.atiptap-theme {
   font-family:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
     sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
@@ -438,12 +441,12 @@
 }
 
 .atiptap-notion .find-and-replace-result {
-  background: #fff1b8;
+  background: var(--atiptap-color-search-bg);
   border-radius: 2px;
 }
 
 .atiptap-notion .find-and-replace-result-current {
-  background: #ffc53d;
+  background: var(--atiptap-color-search-current);
 }
 
 .atiptap-notion-toolbar-dropdown {
@@ -1124,7 +1127,7 @@
   position: absolute;
   z-index: 2;
   inset: 0;
-  background: rgba(22, 119, 255, 0.08);
+  background: var(--atiptap-color-primary-selection);
   pointer-events: none;
 }
 
@@ -1465,7 +1468,7 @@
   display: block;
   width: 100%;
   max-height: 420px;
-  background: #000;
+  background: var(--atiptap-color-bg-inverse);
   border-radius: 0 0 var(--atiptap-border-radius) var(--atiptap-border-radius);
 }
 
@@ -1566,7 +1569,7 @@
 .atiptap-notion-table-handle:active {
   cursor: grabbing;
   background: var(--atiptap-color-primary);
-  color: #fff;
+  color: var(--atiptap-color-text-light);
 }
 
 .atiptap-notion-table-handle--row {
@@ -1676,7 +1679,7 @@
   z-index: 1;
   width: var(--atiptap-cellmenu-size);
   height: var(--atiptap-cellmenu-size);
-  color: #fff;
+  color: var(--atiptap-color-text-light);
   opacity: 0;
   transform: scale(0.9);
   pointer-events: none;

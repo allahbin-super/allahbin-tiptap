@@ -28,6 +28,7 @@ import {
   showImageCaption,
   type ImageAlign
 } from './image';
+import { useNotionThemeClassName, useNotionThemeStyle } from './notion-theme';
 
 const HIGHLIGHT_COLORS = [
   { label: '黄', value: '#fff1b8' },
@@ -62,6 +63,8 @@ const isDragMenuOpen = () => Boolean(document.querySelector('.atiptap-notion-dra
 /** 划词后出现的浮动格式栏；选中图片时切换为图片操作栏 */
 export const FloatingToolbar: React.FC<{ editor: Editor | null }> = ({ editor }) => {
   const [highlightOpen, setHighlightOpen] = useState(false);
+  const bubbleClassName = useNotionThemeClassName('atiptap-notion-bubble');
+  const bubbleStyle = useNotionThemeStyle();
   const marks = useEditorState({
     editor,
     selector: ctx => {
@@ -97,7 +100,8 @@ export const FloatingToolbar: React.FC<{ editor: Editor | null }> = ({ editor })
     <>
       <BubbleMenu
         editor={editor}
-        className="atiptap-notion-bubble"
+        className={bubbleClassName}
+        style={bubbleStyle}
         options={{ placement: 'top', offset: 8 }}
         shouldShow={({
           editor: currentEditor,
@@ -217,7 +221,8 @@ export const FloatingToolbar: React.FC<{ editor: Editor | null }> = ({ editor })
       </BubbleMenu>
       <BubbleMenu
         editor={editor}
-        className="atiptap-notion-bubble"
+        className={bubbleClassName}
+        style={bubbleStyle}
         options={{ placement: 'top', offset: 8 }}
         shouldShow={({
           editor: currentEditor,

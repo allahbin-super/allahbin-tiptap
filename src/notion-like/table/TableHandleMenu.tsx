@@ -3,6 +3,7 @@ import type { Editor } from '@tiptap/react';
 import { MoreVertical, X } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useNotionThemeClassName, useNotionThemeStyle } from '../notion-theme';
 import {
   addRowOrColumn,
   clearRowOrColumn,
@@ -36,6 +37,8 @@ export const TableHandleMenu: React.FC<{
   const triggerRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const isRow = orientation === 'row';
+  const menuClassName = useNotionThemeClassName('atiptap-notion-drag-menu');
+  const menuStyle = useNotionThemeStyle({ top: menuPos.top, left: menuPos.left });
 
   useEffect(() => {
     if (!open) {
@@ -75,12 +78,7 @@ export const TableHandleMenu: React.FC<{
   };
 
   const menu = (
-    <div
-      ref={menuRef}
-      className="atiptap-notion-drag-menu"
-      role="menu"
-      style={{ top: menuPos.top, left: menuPos.left }}
-    >
+    <div ref={menuRef} className={menuClassName} role="menu" style={menuStyle}>
       {index === 0 ? (
         <button
           type="button"
