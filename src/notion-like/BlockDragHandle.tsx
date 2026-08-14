@@ -69,7 +69,7 @@ export type BlockDragHandleProps = {
   blockMenuExtra?: (ctx: BlockMenuExtraContext) => React.ReactNode;
 };
 
-const DRAG_HANDLE_GAP = 8;
+const DRAG_HANDLE_GAP = 4;
 const MENU_VIEWPORT_PADDING = 12;
 const MENU_MAX_HEIGHT = 420;
 

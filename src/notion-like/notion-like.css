@@ -676,11 +676,15 @@
 }
 
 .atiptap-notion .react-renderer.node-image,
-.atiptap-notion .react-renderer.node-imageUpload,
-.atiptap-notion .react-renderer.node-file,
-.atiptap-notion .react-renderer.node-fileUpload {
+.atiptap-notion .react-renderer.node-file {
   white-space: normal;
   line-height: 0;
+  caret-color: transparent;
+}
+
+.atiptap-notion .react-renderer.node-imageUpload,
+.atiptap-notion .react-renderer.node-fileUpload {
+  white-space: normal;
   caret-color: transparent;
 }
 
@@ -751,7 +755,7 @@
   position: absolute;
   left: 100%;
   top: 0;
-  width: var(--drag-handle-main-axis-offset, 8px);
+  width: var(--drag-handle-main-axis-offset, 4px);
   height: 100%;
   pointer-events: none;
 }
@@ -759,6 +763,10 @@
 .atiptap-notion-drag-group {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
+  box-sizing: border-box;
+  /* 与块类型+拖拽条同宽，避免空段落只显示 + 时按窄按钮定位、和正文拉开一截 */
+  min-width: 50px;
   pointer-events: auto;
 }
 
@@ -1023,6 +1031,11 @@
   height: 16px;
   margin: 0 4px;
   background: var(--atiptap-color-split);
+}
+
+.atiptap-notion-slash-menu {
+  /* 高于顶部快捷栏 wrap(60)、搜索(70)、块菜单(80)、工具栏下拉(90) */
+  z-index: 100;
 }
 
 .atiptap-notion-slash-list {
@@ -1365,6 +1378,7 @@
 
 .atiptap-notion-upload {
   margin: 8px 0;
+  line-height: 1.5714285714285714;
 }
 
 .atiptap-notion-upload__dropzone {
@@ -1378,6 +1392,7 @@
   color: var(--atiptap-color-text-secondary);
   cursor: pointer;
   transition: var(--atiptap-motion);
+  line-height: 1.5714285714285714;
 }
 
 .atiptap-notion-upload__dropzone:hover,

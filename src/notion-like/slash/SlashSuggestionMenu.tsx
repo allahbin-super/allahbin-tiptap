@@ -37,7 +37,7 @@ export const SlashSuggestionMenu: React.FC<SlashSuggestionMenuProps> = ({
   const [internalQuery, setInternalQuery] = useState('');
   const [internalRange, setInternalRange] = useState<Range | null>(null);
 
-  const { ref, style, getFloatingProps, isMounted } = useSlashFloating(show, decorationNode, 40, {
+  const { ref, style, getFloatingProps, isMounted } = useSlashFloating(show, decorationNode, 100, {
     placement: 'bottom-start',
     middleware: [
       offset(8),
