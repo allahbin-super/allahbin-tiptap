@@ -54,6 +54,9 @@ export interface IContent {
     height: any;
     width: any;
     align: any;
+    name?: string;
+    mime?: string;
+    size?: number | null;
   };
   key?: string;
   content: IContent2[];

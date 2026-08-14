@@ -7,4 +7,5 @@ export default defineConfig({
   },
   base: '/',
   publicPath: '/',
+  utoopack: {},
 });

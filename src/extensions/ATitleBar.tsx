@@ -1,175 +1,195 @@
-import Tippy from '@tippyjs/react';
 import classNames from 'classnames';
 import { ChevronDown } from 'lucide-react';
-import React, { useState } from 'react';
-import { command, option } from '../menubar';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { ATiptapEditor } from '../editor';
+import { command, option } from '../menubar';
 import TextButton from './TextButton';
 
-const headingLevels: any[] = ['ATitle1', 'ATitle2', 'ATitle3', 1, 2, 3];
+const headingLevels: Array<'ATitle1' | 'ATitle2' | 'ATitle3' | 1 | 2 | 3> = [
+  'ATitle1',
+  'ATitle2',
+  'ATitle3',
+  1,
+  2,
+  3
+];
 
-// 定义标题的中文
 const headingLevelsMap: Record<string, string> = {
   ATitle1: '大标题',
   ATitle2: '小标题(章)',
   ATitle3: '子标题(节)'
 };
 
-type ATitleBarProps = {
-  editor: ATiptapEditor;
+type BlockMenuItem = {
+  key: string;
+  label: string;
+  shortcut?: string;
+  active: boolean;
+  disabled: boolean;
+  onSelect: () => void;
 };
 
-export const ATitleBar: React.FC<ATitleBarProps> = ({ editor }) => {
-  const [headVisible, setHeadVisible] = useState(false);
+type ATitleBarProps = {
+  editor: ATiptapEditor;
+  /** 公文模式才展示落款 / 文号 */
+  showGovBlocks?: boolean;
+};
 
-  const statusMap = React.useMemo(() => {
-    const map: any = {
-      paragraphIsActive: editor.isActive('paragraph'),
-      paragraphIsDisabled: !editor.can().setParagraph()
-    };
-    headingLevels.forEach(level => {
-      if (typeof level === 'number') {
-        map[`heading${level}IsActive`] = editor.isActive('heading', { level });
-        map[`heading${level}Disabled`] =
-          !editor.state.schema.nodes.heading || !editor.can().toggleHeading?.({ level } as any);
-      } else {
-        const levelNum = level.split('').pop();
-        map[`${level}IsActive`] = editor.isActive('ATitle', {
-          level: Number(levelNum)
-        });
-        map[`${level}Disabled`] =
-          !editor.state.schema.nodes.heading ||
-          !editor.can().toggleATitle?.({ level: Number(levelNum) as any });
-      }
-    });
-    return map;
-  }, [editor, editor.state.doc, editor.state.selection]);
+export const ATitleBar: React.FC<ATitleBarProps> = ({ editor, showGovBlocks = false }) => {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
 
-  const getHeadingText = () => {
-    if (statusMap.paragraphIsActive) {
-      return '正文';
+  const hasATitle = !!editor.state.schema.nodes.ATitle;
+  const hasATail = showGovBlocks && !!editor.state.schema.nodes.ATail;
+  const hasAWenHao = showGovBlocks && !!editor.state.schema.nodes.AWenHao;
+  const hasHeading = !!editor.state.schema.nodes.heading;
+
+  const visibleHeadingLevels = headingLevels.filter(level =>
+    typeof level === 'number' ? hasHeading : hasATitle
+  );
+
+  const apply = (runner: () => boolean) => {
+    if (!runner()) {
+      return;
     }
-    const activeLevel = headingLevels.find(level => {
-      if (typeof level === 'number') {
-        return statusMap[`heading${level}IsActive`];
-      }
-      return statusMap[`${level}IsActive`];
-    });
-    if (typeof activeLevel === 'number') {
-      return `标题 ${activeLevel}`;
-    }
-    return headingLevelsMap[activeLevel] || '正文';
+    setOpen(false);
   };
 
+  const menuItems = useMemo<BlockMenuItem[]>(() => {
+    const paragraphActive =
+      editor.isActive('paragraph') && !editor.isActive('ATail') && !editor.isActive('AWenHao');
+
+    const items: BlockMenuItem[] = [
+      {
+        key: 'paragraph',
+        label: '正文',
+        shortcut: `${command} + ${option} + 0`,
+        active: paragraphActive,
+        disabled: !editor.can().setParagraph(),
+        onSelect: () => apply(() => editor.chain().focus().setParagraph().run())
+      }
+    ];
+
+    visibleHeadingLevels.forEach(level => {
+      if (typeof level === 'number') {
+        items.push({
+          key: `heading-${level}`,
+          label: `${level}级标题`,
+          shortcut: `${command} + ${option} + ${level}`,
+          active: editor.isActive('heading', { level }),
+          disabled: !editor.can().setHeading({ level }),
+          onSelect: () => apply(() => editor.chain().focus().setHeading({ level }).run())
+        });
+        return;
+      }
+
+      const levelNum = Number(level.split('').pop()) as 1 | 2 | 3;
+      items.push({
+        key: level,
+        label: headingLevelsMap[level] || `${levelNum}级标题`,
+        active: editor.isActive('ATitle', { level: levelNum }),
+        disabled: !editor.can().setATitle({ level: levelNum }),
+        onSelect: () => apply(() => editor.chain().focus().setATitle({ level: levelNum }).run())
+      });
+    });
+
+    if (hasAWenHao) {
+      items.push({
+        key: 'wenhao',
+        label: '文号',
+        active: editor.isActive('AWenHao'),
+        disabled: !editor.can().setWenHao(),
+        onSelect: () => apply(() => editor.chain().focus().setWenHao().run())
+      });
+    }
+
+    if (hasATail) {
+      items.push({
+        key: 'tail',
+        label: '落款',
+        active: editor.isActive('ATail'),
+        disabled: !editor.can().setATail(),
+        onSelect: () => apply(() => editor.chain().focus().setATail().run())
+      });
+    }
+
+    return items;
+  }, [
+    editor,
+    editor.state.doc,
+    editor.state.selection,
+    hasATail,
+    hasAWenHao,
+    visibleHeadingLevels
+  ]);
+
+  const currentLabel =
+    menuItems.find(item => item.active)?.label ??
+    (editor.isActive('ATail')
+      ? '落款'
+      : editor.isActive('AWenHao')
+        ? '文号'
+        : '正文');
+
+  const triggerActive = menuItems.some(item => item.active && item.key !== 'paragraph');
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    const onPointerDown = (event: PointerEvent) => {
+      if (rootRef.current?.contains(event.target as Node)) {
+        return;
+      }
+      setOpen(false);
+    };
+    document.addEventListener('pointerdown', onPointerDown, true);
+    return () => document.removeEventListener('pointerdown', onPointerDown, true);
+  }, [open]);
+
   return (
-    <div>
-      <Tippy
-        placement="bottom-start"
-        interactive
-        onClickOutside={() => setHeadVisible(false)}
-        visible={headVisible}
-        content={
-          <div className="atiptap-dropdown-menu">
-            <div className="atiptap-dropdown-menu__content">
-              <div
-                onClick={() => {
-                  if (
-                    statusMap.paragraphIsDisabled ||
-                    !editor.can().chain().focus().setParagraph().run()
-                  ) {
-                    return false;
-                  }
-                  editor.chain().focus().setParagraph().run();
-                  setHeadVisible(false);
-                }}
-                className={classNames('atiptap-dropdown-menu__item', {
-                  'atiptap-dropdown-menu__item--active': statusMap.paragraphIsActive,
-                  'atiptap-dropdown-menu__item--disabled': statusMap.paragraphIsDisabled
-                })}
-              >
-                <div className={classNames('atiptap-menu-head-row')}>
-                  <span>正文</span>
-                  <span className="atiptap-menu-head-row__span">{`${command} + ${option} + 0`}</span>
-                </div>
-              </div>
-              {headingLevels.map(level => (
-                <li
-                  key={level}
-                  onClick={() => {
-                    if (typeof level === 'number') {
-                      if (
-                        statusMap[`heading${level}Disabled`] ||
-                        !editor
-                          .can()
-                          .chain()
-                          .focus()
-                          .toggleHeading({ level } as any)
-                          .run()
-                      ) {
-                        return false;
-                      }
-                    } else {
-                      // 取出最后一个字符串
-                      const levelNum = level.split('').pop();
-                      if (
-                        statusMap[`${level}Disabled`] ||
-                        !editor
-                          .can()
-                          .chain()
-                          .focus()
-                          .toggleATitle({ level: Number(levelNum) as any })
-                          .run()
-                      ) {
-                        return false;
-                      }
-                    }
-                    if (typeof level === 'number') {
-                      editor
-                        .chain()
-                        .focus()
-                        .toggleHeading({ level } as any)
-                        .run();
-                    } else {
-                      // 取出最后一个字符串
-                      const levelNum = level.split('').pop();
-                      editor
-                        .chain()
-                        .focus()
-                        .toggleATitle({ level: Number(levelNum) as any })
-                        .run();
-                    }
-                    setHeadVisible(false);
-                  }}
-                  className={classNames('atiptap-dropdown-menu__item', {
-                    'atiptap-dropdown-menu__item--active': statusMap[`${level}IsActive`],
-                    'atiptap-dropdown-menu__item--disabled': statusMap[`${level}Disabled`]
-                  })}
-                >
-                  <div className={classNames('atiptap-menu-head-row')}>
-                    <span className={`atiptap-menu-head-row__title--level${level}`}>
-                      {headingLevelsMap[level] || `${level}级标题`}
-                    </span>
-                    {typeof level === 'number' && (
-                      <span className="atiptap-menu-head-row__span">
-                        {`${command} + ${option} + ${level}`}
-                      </span>
-                    )}
-                  </div>
-                </li>
-              ))}
-            </div>
-          </div>
-        }
+    <div className="atiptap-dropdown" ref={rootRef}>
+      <TextButton
+        className="atiptap-dropdown-trigger"
+        title="段落样式"
+        onClick={() => setOpen(current => !current)}
+        isActive={triggerActive || open}
       >
-        <TextButton
-          className="atiptap-dropdown-trigger"
-          onClick={() => setHeadVisible(!headVisible)}
-          isActive={statusMap.paragraphIsActive}
-        >
-          <span className="atiptap-dropdown-trigger__head-text">{getHeadingText()}</span>
-          <ChevronDown className="atiptap-dropdown-trigger__head-icon" size={16} />
-        </TextButton>
-      </Tippy>
+        <span className="atiptap-dropdown-trigger__head-text">{currentLabel}</span>
+        <ChevronDown className="atiptap-dropdown-trigger__head-icon" size={16} />
+      </TextButton>
+      {open ? (
+        <div className="atiptap-dropdown__panel" role="menu" aria-label="段落样式">
+          {menuItems.map(item => (
+            <button
+              key={item.key}
+              type="button"
+              role="menuitem"
+              disabled={item.disabled}
+              className={classNames('atiptap-dropdown-menu__item', {
+                'atiptap-dropdown-menu__item--active': item.active,
+                'atiptap-dropdown-menu__item--disabled': item.disabled
+              })}
+              onMouseDown={event => event.preventDefault()}
+              onClick={() => {
+                if (item.disabled) {
+                  return;
+                }
+                item.onSelect();
+              }}
+            >
+              <span className="atiptap-menu-head-row">
+                <span className={`atiptap-menu-head-row__title--level${item.key.replace('heading-', '')}`}>
+                  {item.label}
+                </span>
+                {item.shortcut ? (
+                  <span className="atiptap-menu-head-row__span">{item.shortcut}</span>
+                ) : null}
+              </span>
+            </button>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 };

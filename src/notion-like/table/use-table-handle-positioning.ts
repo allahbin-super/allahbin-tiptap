@@ -1,4 +1,4 @@
-import { offset, size, useFloating, useTransitionStyles } from '@floating-ui/react';
+import { autoUpdate, offset, size, useFloating, useTransitionStyles } from '@floating-ui/react';
 import { useEffect, useMemo } from 'react';
 import { clamp } from './tiptap-table-utils';
 
@@ -113,6 +113,8 @@ export function useTableHandlePosition(
   const { refs, update, context, floatingStyles } = useFloating({
     open: show,
     placement,
+    strategy: 'fixed',
+    whileElementsMounted: autoUpdate,
     middleware: [
       offset(offsetValue),
       size({

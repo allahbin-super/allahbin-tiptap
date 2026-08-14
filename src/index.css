@@ -1,9 +1,45 @@
+/* 模仿 Ant Design 5 默认主题（公文编辑器未接入 antd，仅对齐 token） */
+.atiptap-editor,
+.atiptap-dropdown-menu,
+.atiptap-dropdown-tippy {
+  --atiptap-color-primary: #1677ff;
+  --atiptap-color-primary-hover: #4096ff;
+  --atiptap-color-primary-bg: #e6f4ff;
+  --atiptap-color-text: rgba(0, 0, 0, 0.88);
+  --atiptap-color-text-secondary: rgba(0, 0, 0, 0.65);
+  --atiptap-color-text-tertiary: rgba(0, 0, 0, 0.45);
+  --atiptap-color-text-quaternary: rgba(0, 0, 0, 0.25);
+  --atiptap-color-border: #d9d9d9;
+  --atiptap-color-border-secondary: #f0f0f0;
+  --atiptap-color-split: rgba(5, 5, 5, 0.06);
+  --atiptap-color-bg: #fff;
+  --atiptap-color-bg-spotlight: #fafafa;
+  --atiptap-color-fill: rgba(0, 0, 0, 0.04);
+  --atiptap-border-radius: 6px;
+  --atiptap-border-radius-sm: 4px;
+  --atiptap-border-radius-lg: 8px;
+  --atiptap-control-height: 32px;
+  --atiptap-font-size: 14px;
+  --atiptap-font-size-sm: 12px;
+  --atiptap-motion: all 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
+  --atiptap-box-shadow:
+    0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 3px 6px -4px rgba(0, 0, 0, 0.12),
+    0 9px 28px 8px rgba(0, 0, 0, 0.05);
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
+    sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
 /* 基础编辑器样式 */
 .atiptap-editor {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
   overflow: hidden;
+  color: var(--atiptap-color-text);
+  background: var(--atiptap-color-bg);
+  border: 1px solid var(--atiptap-color-border);
+  border-radius: var(--atiptap-border-radius);
 }
 
 .atiptap-editor .atiptap-menu-bar,
@@ -25,6 +61,12 @@
   font-size: 12pt;
 }
 
+/* 简易模式：height 作用在输入区，避免工具栏把内容区挤没 */
+.atiptap_simple .atiptap-editor:not(.atiptap-editor--fullscreen) .atiptap-content {
+  flex: none;
+  height: var(--atiptap-editor-height, 120px);
+}
+
 .atiptap-editor--fullscreen {
   position: fixed;
   inset: 0;
@@ -38,9 +80,11 @@
   width: 100% !important;
 }
 
-/* 移除边框和内边距 */
+/* 无边框模式 */
+.atiptap_bordered_true_false .atiptap-editor,
 .atiptap_bordered_false_false .atiptap-editor {
   border: 0;
+  border-radius: 0;
 }
 
 .atiptap_bordered_false_false .atiptap-editor .atiptap-content .ProseMirror {
@@ -226,47 +270,164 @@
   /* 可以扩展 custom 模式的默认样式 */
 }
 
-/* 简易菜单样式（替代旧版 menubar 样式） */
+/* 工具栏：对齐 antd Button / Dropdown */
 .atiptap-menu-bar {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 4px;
   align-items: center;
-  border-bottom: 1px solid #e5e7eb;
-  padding: 8px 12px;
-  background: #fff;
+  box-sizing: border-box;
+  min-height: 40px;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--atiptap-color-border-secondary);
+  background: var(--atiptap-color-bg-spotlight);
 }
 
 .atiptap-menu-bar-divider {
+  flex-shrink: 0;
   width: 1px;
-  height: 20px;
-  background: #e5e7eb;
+  height: 16px;
   margin: 0 4px;
+  background: var(--atiptap-color-split);
 }
 
 .atiptap-menu-bar__btn {
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  background: #fff;
-  padding: 4px 8px;
-  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: var(--atiptap-control-height);
+  height: var(--atiptap-control-height);
+  padding: 0;
+  border: none;
+  border-radius: var(--atiptap-border-radius);
+  background: transparent;
+  color: var(--atiptap-color-text);
+  font-family: inherit;
+  font-size: var(--atiptap-font-size-sm);
   line-height: 1;
   cursor: pointer;
+  transition: var(--atiptap-motion);
 }
 
-.atiptap-menu-bar__btn:hover {
-  background: #f3f4f6;
+.atiptap-menu-bar__btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.atiptap-menu-bar__btn:hover:not(:disabled) {
+  color: var(--atiptap-color-primary);
+  background: var(--atiptap-color-fill);
 }
 
 .atiptap-menu-bar__btn--active {
-  color: #1d4ed8;
-  border-color: #93c5fd;
-  background: #eff6ff;
+  color: var(--atiptap-color-primary);
+  background: var(--atiptap-color-primary-bg);
 }
 
-.atiptap-menu-bar__btn--disabled {
-  opacity: 0.5;
+.atiptap-menu-bar__btn--disabled,
+.atiptap-menu-bar__btn:disabled {
+  color: var(--atiptap-color-text-quaternary);
   cursor: not-allowed;
+}
+
+.atiptap-menu-bar__btn.atiptap-dropdown-trigger,
+.atiptap-menu-bar__btn--wide {
+  width: auto;
+  min-width: 32px;
+  gap: 4px;
+  padding: 0 8px;
+}
+
+.atiptap-dropdown-trigger__head-text {
+  font-size: var(--atiptap-font-size-sm);
+  line-height: 1;
+}
+
+.atiptap-dropdown-trigger__head-icon {
+  color: var(--atiptap-color-text-tertiary);
+}
+
+.atiptap-dropdown {
+  position: relative;
+  display: inline-flex;
+}
+
+.atiptap-dropdown__panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 100;
+  box-sizing: border-box;
+  min-width: 180px;
+  padding: 4px;
+  background: var(--atiptap-color-bg);
+  border: 1px solid var(--atiptap-color-border-secondary);
+  border-radius: var(--atiptap-border-radius-lg);
+  box-shadow: var(--atiptap-box-shadow);
+}
+
+.atiptap-dropdown-menu {
+  min-width: 180px;
+  padding: 4px;
+  background: var(--atiptap-color-bg);
+  border: 1px solid var(--atiptap-color-border-secondary);
+  border-radius: var(--atiptap-border-radius-lg);
+  box-shadow: var(--atiptap-box-shadow);
+}
+
+.atiptap-dropdown-menu__content {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.atiptap-dropdown-menu__item {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 32px;
+  padding: 5px 12px;
+  border: none;
+  border-radius: var(--atiptap-border-radius-sm);
+  color: var(--atiptap-color-text);
+  background: transparent;
+  cursor: pointer;
+  list-style: none;
+  font-family: inherit;
+  font-size: var(--atiptap-font-size);
+  line-height: 1.5714285714285714;
+  text-align: left;
+  transition: var(--atiptap-motion);
+}
+
+.atiptap-dropdown-menu__item:hover {
+  background: var(--atiptap-color-fill);
+}
+
+.atiptap-dropdown-menu__item--active {
+  color: var(--atiptap-color-primary);
+  background: var(--atiptap-color-primary-bg);
+}
+
+.atiptap-dropdown-menu__item--disabled,
+.atiptap-dropdown-menu__item:disabled {
+  color: var(--atiptap-color-text-quaternary);
+  cursor: not-allowed;
+}
+
+.atiptap-menu-head-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+}
+
+.atiptap-menu-head-row__span {
+  color: var(--atiptap-color-text-tertiary);
+  font-size: var(--atiptap-font-size-sm);
 }
 
 .atiptap-menu-resource-input {
@@ -274,48 +435,66 @@
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  border-bottom: 1px solid #e5e7eb;
-  background: #f8fafc;
-  font-size: 12px;
+  border-bottom: 1px solid var(--atiptap-color-border-secondary);
+  background: var(--atiptap-color-bg-spotlight);
+  color: var(--atiptap-color-text-secondary);
+  font-size: var(--atiptap-font-size-sm);
 }
 
 .atiptap-menu-resource-input label {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .atiptap-menu-resource-input input {
-  width: 220px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  padding: 4px 8px;
-  font-size: 12px;
+  box-sizing: border-box;
+  width: 240px;
+  height: 32px;
+  padding: 0 11px;
+  border: 1px solid var(--atiptap-color-border);
+  border-radius: var(--atiptap-border-radius);
+  outline: none;
+  color: var(--atiptap-color-text);
+  background: var(--atiptap-color-bg);
+  font-family: inherit;
+  font-size: var(--atiptap-font-size);
+}
+
+.atiptap-menu-resource-input input:hover {
+  border-color: var(--atiptap-color-primary-hover);
+}
+
+.atiptap-menu-resource-input input:focus {
+  border-color: var(--atiptap-color-primary);
+  box-shadow: 0 0 0 2px var(--atiptap-color-primary-bg);
 }
 
 .atiptap-menu-resource-input button {
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  background: #fff;
-  padding: 4px 8px;
-  font-size: 12px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--atiptap-color-border);
+  border-radius: var(--atiptap-border-radius);
+  background: var(--atiptap-color-bg);
+  color: var(--atiptap-color-text);
+  font-family: inherit;
+  font-size: var(--atiptap-font-size);
   cursor: pointer;
+  transition: var(--atiptap-motion);
 }
 
-.atiptap-menu-bar .atiptap-notion-link__trigger {
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  background: #fff;
-  padding: 4px 8px;
-  height: auto;
-  font-size: 12px;
-  line-height: 1;
+.atiptap-menu-resource-input button:hover {
+  color: var(--atiptap-color-primary);
+  border-color: var(--atiptap-color-primary);
 }
 
-.atiptap-menu-bar .atiptap-notion-link__trigger[data-active='true'] {
-  color: #1d4ed8;
-  border-color: #93c5fd;
-  background: #eff6ff;
+.atiptap-menu-bar .atiptap-notion-link__trigger,
+.atiptap-menu-bar .atiptap-notion-bubble__btn {
+  width: var(--atiptap-control-height);
+  height: var(--atiptap-control-height);
+  padding: 0;
+  border: none;
+  border-radius: var(--atiptap-border-radius);
 }
 
 .atiptap-menu-highlight {

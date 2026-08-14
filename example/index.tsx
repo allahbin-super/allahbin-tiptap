@@ -1,56 +1,40 @@
-import AEditorRender, { IATiptapProps } from '@allahbin/tiptap';
+import { Button, Input, Select, Space, Typography } from 'antd';
 import React, { useState } from 'react';
+import AEditorRender, { type IATiptapProps } from '../src';
 
-const buttonStyle = {
-  margin: '0 10px',
-  padding: '5px 10px',
-  border: '1px solid #ccc',
-  borderRadius: '5px',
-  cursor: 'pointer'
-};
+const SAMPLE_HTML = '<p>123</p>';
+const SAMPLE_MD = '! 你好';
+const SAMPLE_JSON =
+  '{"type":"doc","content":[{"type":"paragraph","attrs":{"textAlign":"left","indent":0},"content":[{"type":"text","text":"阿萨达阿萨大大咋打打算111"},{"type":"text","marks":[{"type":"link","attrs":{"href":"阿萨大大","target":"_blank","data-id":123131321}}],"text":"阿萨大大"}]}]}';
 
 export default () => {
-  // 富文本的值
   const [value, setValue] = useState<any>();
-  // 富文本的模式
   const [mode, setMode] = useState<IATiptapProps['mode']>('html');
-  // md值
   const [mdValue, setMdValue] = useState<string>();
-  // json值
   const [jsonValue, setJsonValue] = useState<any>();
-  // html值
   const [htmlValue, setHtmlValue] = useState<string>();
-  // 是否可以编辑
   const [editable, setEditable] = useState<boolean>(true);
-  // 是否有边框
   const [bordered, setBordered] = useState<boolean>(true);
-  // 渲染模式
-  const [renderMode, setRenderMode] = useState<IATiptapProps['renderMode']>('normal');
-  // 编辑器的ref
+  const [renderMode, setRenderMode] = useState<IATiptapProps['renderMode']>('gov');
   const editor = React.useRef<any>();
 
-  // 值变化
-  const onChange = (v: any, editor: any) => {
-    console.log('onChange', v, editor);
+  const onChange = (v: any, currentEditor: any) => {
+    console.log('onChange', v, currentEditor);
     setValue(v);
     parseContentToInputBox();
   };
 
-  // html的值变化
   const onHtmlChange = (v: string) => {
     setHtmlValue(v);
     setValue(v);
   };
 
-  // md的值变化
   const onMdChange = (v: string) => {
     setMdValue(v);
     setValue(v);
   };
 
-  // json的值变化
   const onJsonChange = (v: string) => {
-    // 判断是否是json字符串
     if (!v.includes('{')) {
       setJsonValue('');
       return;
@@ -71,21 +55,53 @@ export default () => {
   };
 
   return (
-    <>
-      <div>
-        <span>运行的模式</span>&nbsp;
-        <button onClick={() => setEditable(!editable)}>切换模式</button>
-        <select
-          onChange={e => {
-            setRenderMode(e.target.value as any);
+    <div style={{ color: 'rgba(0, 0, 0, 0.88)' }}>
+      <Typography.Paragraph type="secondary" style={{ marginBottom: 12 }}>
+        公文 / 普通文章编辑器。可切换编辑状态、皮肤和边框，下方可查看或回写 HTML / Markdown / JSON。
+      </Typography.Paragraph>
+      <Space wrap size={8} style={{ marginBottom: 12 }}>
+        <Button type={editable ? 'primary' : 'default'} onClick={() => setEditable(v => !v)}>
+          {editable ? '编辑中' : '只读'}
+        </Button>
+        <Select
+          value={renderMode}
+          style={{ width: 128 }}
+          onChange={v => setRenderMode(v)}
+          options={[
+            { value: 'gov', label: '公文皮肤' },
+            { value: 'normal', label: '普通皮肤' },
+            { value: 'custom', label: '自定义' }
+          ]}
+        />
+        <Button onClick={() => setBordered(v => !v)}>{bordered ? '有边框' : '无边框'}</Button>
+        <Button
+          onClick={() => {
+            setMode('html');
+            onHtmlChange(SAMPLE_HTML);
           }}
         >
-          <option value="normal">normal</option>
-          <option value="gov">gov</option>
-          <option value="custom">custom</option>
-        </select>
-        <button onClick={() => setBordered(!bordered)}>{bordered ? '边框模式' : '无边框'}</button>
-      </div>
+          填入 HTML
+        </Button>
+        <Button
+          onClick={() => {
+            setMode('md');
+            onMdChange(SAMPLE_MD);
+          }}
+        >
+          填入 Markdown
+        </Button>
+        <Button
+          onClick={() => {
+            setMode('json');
+            onJsonChange(SAMPLE_JSON);
+          }}
+        >
+          填入 JSON
+        </Button>
+        <Button id="parseContentToInputBox" onClick={parseContentToInputBox}>
+          同步到下方
+        </Button>
+      </Space>
       <AEditorRender
         onReady={e => {
           // @ts-ignore
@@ -99,74 +115,41 @@ export default () => {
         editable={editable}
         bordered={bordered}
       />
-      <div
-        style={{
-          marginTop: 12
-        }}
-      >
-        <button
-          style={buttonStyle}
-          onClick={() => {
-            setMode('html');
-            onHtmlChange('<p>123</p>');
-          }}
-        >
-          赋值html
-        </button>
-        <button
-          style={buttonStyle}
-          onClick={() => {
-            setMode('md');
-            onMdChange('! 你好');
-          }}
-        >
-          赋值md
-        </button>
-        <button
-          style={buttonStyle}
-          onClick={() => {
-            setMode('json');
-            onJsonChange(
-              '{"type":"doc","content":[{"type":"paragraph","attrs":{"textAlign":"left","indent":0},"content":[{"type":"text","text":"阿萨达阿萨大大咋打打算111"},{"type":"text","marks":[{"type":"link","attrs":{"href":"阿萨大大","target":"_blank","data-id":123131321}}],"text":"阿萨大大"}]}]}'
-            );
-          }}
-        >
-          赋值json
-        </button>
-        <button style={buttonStyle} id="parseContentToInputBox" onClick={parseContentToInputBox}>
-          解析数据到输入框
-        </button>
+      <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div>
+          <Typography.Text strong>HTML</Typography.Text>
+          <Input.TextArea
+            id="htmlValue"
+            value={htmlValue}
+            onChange={e => onHtmlChange(e.target.value)}
+            rows={4}
+            placeholder="HTML"
+            style={{ marginTop: 8 }}
+          />
+        </div>
+        <div>
+          <Typography.Text strong>Markdown</Typography.Text>
+          <Input.TextArea
+            id="mdValue"
+            value={mdValue}
+            onChange={e => onMdChange(e.target.value)}
+            rows={4}
+            placeholder="Markdown"
+            style={{ marginTop: 8 }}
+          />
+        </div>
+        <div>
+          <Typography.Text strong>JSON</Typography.Text>
+          <Input.TextArea
+            id="jsonValue"
+            value={jsonValue}
+            onChange={e => onJsonChange(e.target.value)}
+            rows={4}
+            placeholder="JSON"
+            style={{ marginTop: 8, fontFamily: 'Consolas, Monaco, monospace' }}
+          />
+        </div>
       </div>
-      <h3>jsonValue</h3>
-      <textarea
-        id="jsonValue"
-        value={jsonValue}
-        onChange={e => onJsonChange(e.target.value)}
-        style={{
-          width: '100%'
-        }}
-        rows={4}
-      />
-      <h3>htmlValue</h3>
-      <textarea
-        id="htmlValue"
-        value={htmlValue}
-        onChange={e => onHtmlChange(e.target.value)}
-        style={{
-          width: '100%'
-        }}
-        rows={4}
-      />
-      <h3>mdValue</h3>
-      <textarea
-        id="mdValue"
-        value={mdValue}
-        onChange={e => onMdChange(e.target.value)}
-        style={{
-          width: '100%'
-        }}
-        rows={4}
-      />
-    </>
+    </div>
   );
 };

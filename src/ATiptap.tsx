@@ -9,10 +9,16 @@ const ATiptap: React.FC<IATiptapProps> = ({
   mode,
   editable,
   imageUploader,
+  fileUploader,
+  fileRenderers,
+  onFileClick,
   onReady,
   style,
   bordered,
   showToolbar,
+  showOutline,
+  outlineMode,
+  onOutlineModeChange,
   className,
   ...props
 }) => {
@@ -24,11 +30,17 @@ const ATiptap: React.FC<IATiptapProps> = ({
         mode={mode}
         editable={editable}
         imageUploader={imageUploader}
+        fileUploader={fileUploader}
+        fileRenderers={fileRenderers}
+        onFileClick={onFileClick}
         onReady={onReady}
         style={style}
         className={className}
         bordered={bordered}
         showToolbar={showToolbar}
+        showOutline={showOutline}
+        outlineMode={outlineMode}
+        onOutlineModeChange={onOutlineModeChange}
       />
     );
   }
@@ -51,3 +63,4 @@ const ATiptap: React.FC<IATiptapProps> = ({
 };
 
 export default ATiptap;
+

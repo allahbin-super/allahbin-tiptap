@@ -11,6 +11,8 @@ export type EditorRenderProps = {
   contentClassName?: string;
   contentStyle?: React.CSSProperties;
   onFullscreenChange?: (v: boolean) => void;
+  /** 公文模式才在段落下拉中展示落款 / 文号 */
+  showGovBlocks?: boolean;
 };
 
 export const EditorRender: React.FC<EditorRenderProps> = ({
@@ -21,7 +23,8 @@ export const EditorRender: React.FC<EditorRenderProps> = ({
   menuStyle,
   contentClassName,
   contentStyle,
-  onFullscreenChange
+  onFullscreenChange,
+  showGovBlocks = false
 }) => {
   if (!editor) {
     return null;
@@ -33,6 +36,7 @@ export const EditorRender: React.FC<EditorRenderProps> = ({
         editor={editor}
         menuStyle={menuStyle}
         menuClassName={menuClassName}
+        showGovBlocks={showGovBlocks}
         onFullscreenChange={v => onFullscreenChange?.(v)}
       />
       <EditorContent

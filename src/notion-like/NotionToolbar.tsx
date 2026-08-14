@@ -18,6 +18,7 @@ import {
   Italic,
   List,
   ListOrdered,
+  Paperclip,
   Quote,
   Redo2,
   Strikethrough,
@@ -28,6 +29,8 @@ import {
 } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { LinkPopover } from '../ui/LinkPopover';
+import { insertFileUploadNode } from './file';
+import { SearchReplacePanel } from './SearchReplacePanel';
 import { insertImageUploadNode } from './image';
 
 const HIGHLIGHT_COLORS = [
@@ -128,6 +131,7 @@ const ToolbarDropdown: React.FC<{
 /** 头部快捷操作区，能力对齐 Tiptap Simple Editor，视觉走 antd token */
 export const NotionToolbar: React.FC<{ editor: Editor }> = ({ editor }) => {
   const [openMenu, setOpenMenu] = useState<ToolbarMenu>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
   const marks = useEditorState({
     editor,
     selector: ctx => {
@@ -165,7 +169,7 @@ export const NotionToolbar: React.FC<{ editor: Editor }> = ({ editor }) => {
     }
   });
 
-  if (!editor.isEditable || !marks) {
+  if (!marks) {
     return null;
   }
 
@@ -173,240 +177,247 @@ export const NotionToolbar: React.FC<{ editor: Editor }> = ({ editor }) => {
     marks.headingLevel === 1 ? Heading1 : marks.headingLevel === 3 ? Heading3 : Heading2;
 
   return (
-    <div className="atiptap-notion-toolbar" role="toolbar" aria-label="编辑器快捷操作">
-      <div className="atiptap-notion-toolbar__group">
-        <ToolbarButton
-          title="撤销"
-          disabled={!marks.canUndo}
-          onClick={() => editor.chain().focus().undo().run()}
-        >
-          <Undo2 size={16} />
-        </ToolbarButton>
-        <ToolbarButton
-          title="重做"
-          disabled={!marks.canRedo}
-          onClick={() => editor.chain().focus().redo().run()}
-        >
-          <Redo2 size={16} />
-        </ToolbarButton>
-      </div>
-      <ToolbarDivider />
-      <div className="atiptap-notion-toolbar__group">
-        <ToolbarDropdown
-          title="标题"
-          active={marks.headingLevel > 0}
-          open={openMenu === 'heading'}
-          onOpenChange={open => setOpenMenu(open ? 'heading' : null)}
-          icon={<HeadingIcon size={16} />}
-          items={[
-            {
-              key: 'paragraph',
-              title: '正文',
-              icon: <Type size={16} />,
-              active: marks.headingLevel === 0 && !marks.bulletList && !marks.orderedList,
-              onClick: () => editor.chain().focus().setParagraph().run()
-            },
-            {
-              key: 'h1',
-              title: '标题 1',
-              icon: <Heading1 size={16} />,
-              active: marks.headingLevel === 1,
-              onClick: () => editor.chain().focus().toggleHeading({ level: 1 }).run()
-            },
-            {
-              key: 'h2',
-              title: '标题 2',
-              icon: <Heading2 size={16} />,
-              active: marks.headingLevel === 2,
-              onClick: () => editor.chain().focus().toggleHeading({ level: 2 }).run()
-            },
-            {
-              key: 'h3',
-              title: '标题 3',
-              icon: <Heading3 size={16} />,
-              active: marks.headingLevel === 3,
-              onClick: () => editor.chain().focus().toggleHeading({ level: 3 }).run()
-            }
-          ]}
-        />
-        <ToolbarDropdown
-          title="列表"
-          active={marks.bulletList || marks.orderedList || marks.taskList}
-          open={openMenu === 'list'}
-          onOpenChange={open => setOpenMenu(open ? 'list' : null)}
-          icon={
-            marks.orderedList ? (
-              <ListOrdered size={16} />
-            ) : marks.taskList ? (
-              <CheckSquare size={16} />
-            ) : (
-              <List size={16} />
-            )
-          }
-          items={[
-            {
-              key: 'bullet',
-              title: '无序列表',
-              icon: <List size={16} />,
-              active: marks.bulletList,
-              onClick: () => editor.chain().focus().toggleBulletList().run()
-            },
-            {
-              key: 'ordered',
-              title: '有序列表',
-              icon: <ListOrdered size={16} />,
-              active: marks.orderedList,
-              onClick: () => editor.chain().focus().toggleOrderedList().run()
-            },
-            {
-              key: 'task',
-              title: '任务列表',
-              icon: <CheckSquare size={16} />,
-              active: marks.taskList,
-              onClick: () => editor.chain().focus().toggleTaskList().run()
-            }
-          ]}
-        />
-        <ToolbarButton
-          title="引用"
-          active={marks.blockquote}
-          onClick={() => editor.chain().focus().toggleBlockquote().run()}
-        >
-          <Quote size={16} />
-        </ToolbarButton>
-        <ToolbarButton
-          title="代码块"
-          active={marks.codeBlock}
-          onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-        >
-          <Code2 size={16} />
-        </ToolbarButton>
-      </div>
-      <ToolbarDivider />
-      <div className="atiptap-notion-toolbar__group">
-        <ToolbarButton
-          title="加粗"
-          active={marks.bold}
-          onClick={() => editor.chain().focus().toggleBold().run()}
-        >
-          <Bold size={16} />
-        </ToolbarButton>
-        <ToolbarButton
-          title="斜体"
-          active={marks.italic}
-          onClick={() => editor.chain().focus().toggleItalic().run()}
-        >
-          <Italic size={16} />
-        </ToolbarButton>
-        <ToolbarButton
-          title="下划线"
-          active={marks.underline}
-          onClick={() => editor.chain().focus().toggleUnderline().run()}
-        >
-          <Underline size={16} />
-        </ToolbarButton>
-        <ToolbarButton
-          title="删除线"
-          active={marks.strike}
-          onClick={() => editor.chain().focus().toggleStrike().run()}
-        >
-          <Strikethrough size={16} />
-        </ToolbarButton>
-        <ToolbarButton
-          title="行内代码"
-          active={marks.code}
-          onClick={() => editor.chain().focus().toggleCode().run()}
-        >
-          <Code size={16} />
-        </ToolbarButton>
-        <div className="atiptap-notion-highlight">
+    <div className="atiptap-notion-toolbar-wrap">
+      <div className="atiptap-notion-toolbar" role="toolbar" aria-label="编辑器快捷操作">
+        <div className="atiptap-notion-toolbar__group">
           <ToolbarButton
-            title="高亮"
-            active={marks.highlight || openMenu === 'highlight'}
-            onClick={() => setOpenMenu(openMenu === 'highlight' ? null : 'highlight')}
+            title="撤销"
+            disabled={!marks.canUndo}
+            onClick={() => editor.chain().focus().undo().run()}
           >
-            <Highlighter size={16} />
+            <Undo2 size={16} />
           </ToolbarButton>
-          {openMenu === 'highlight' ? (
-            <div className="atiptap-notion-highlight__panel">
-              {HIGHLIGHT_COLORS.map(color => (
+          <ToolbarButton
+            title="重做"
+            disabled={!marks.canRedo}
+            onClick={() => editor.chain().focus().redo().run()}
+          >
+            <Redo2 size={16} />
+          </ToolbarButton>
+        </div>
+        <ToolbarDivider />
+        <div className="atiptap-notion-toolbar__group">
+          <ToolbarDropdown
+            title="标题"
+            active={marks.headingLevel > 0}
+            open={openMenu === 'heading'}
+            onOpenChange={open => setOpenMenu(open ? 'heading' : null)}
+            icon={<HeadingIcon size={16} />}
+            items={[
+              {
+                key: 'paragraph',
+                title: '正文',
+                icon: <Type size={16} />,
+                active: marks.headingLevel === 0 && !marks.bulletList && !marks.orderedList,
+                onClick: () => editor.chain().focus().setParagraph().run()
+              },
+              {
+                key: 'h1',
+                title: '标题 1',
+                icon: <Heading1 size={16} />,
+                active: marks.headingLevel === 1,
+                onClick: () => editor.chain().focus().toggleHeading({ level: 1 }).run()
+              },
+              {
+                key: 'h2',
+                title: '标题 2',
+                icon: <Heading2 size={16} />,
+                active: marks.headingLevel === 2,
+                onClick: () => editor.chain().focus().toggleHeading({ level: 2 }).run()
+              },
+              {
+                key: 'h3',
+                title: '标题 3',
+                icon: <Heading3 size={16} />,
+                active: marks.headingLevel === 3,
+                onClick: () => editor.chain().focus().toggleHeading({ level: 3 }).run()
+              }
+            ]}
+          />
+          <ToolbarDropdown
+            title="列表"
+            active={marks.bulletList || marks.orderedList || marks.taskList}
+            open={openMenu === 'list'}
+            onOpenChange={open => setOpenMenu(open ? 'list' : null)}
+            icon={
+              marks.orderedList ? (
+                <ListOrdered size={16} />
+              ) : marks.taskList ? (
+                <CheckSquare size={16} />
+              ) : (
+                <List size={16} />
+              )
+            }
+            items={[
+              {
+                key: 'bullet',
+                title: '无序列表',
+                icon: <List size={16} />,
+                active: marks.bulletList,
+                onClick: () => editor.chain().focus().toggleBulletList().run()
+              },
+              {
+                key: 'ordered',
+                title: '有序列表',
+                icon: <ListOrdered size={16} />,
+                active: marks.orderedList,
+                onClick: () => editor.chain().focus().toggleOrderedList().run()
+              },
+              {
+                key: 'task',
+                title: '任务列表',
+                icon: <CheckSquare size={16} />,
+                active: marks.taskList,
+                onClick: () => editor.chain().focus().toggleTaskList().run()
+              }
+            ]}
+          />
+          <ToolbarButton
+            title="引用"
+            active={marks.blockquote}
+            onClick={() => editor.chain().focus().toggleBlockquote().run()}
+          >
+            <Quote size={16} />
+          </ToolbarButton>
+          <ToolbarButton
+            title="代码块"
+            active={marks.codeBlock}
+            onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+          >
+            <Code2 size={16} />
+          </ToolbarButton>
+        </div>
+        <ToolbarDivider />
+        <div className="atiptap-notion-toolbar__group">
+          <ToolbarButton
+            title="加粗"
+            active={marks.bold}
+            onClick={() => editor.chain().focus().toggleBold().run()}
+          >
+            <Bold size={16} />
+          </ToolbarButton>
+          <ToolbarButton
+            title="斜体"
+            active={marks.italic}
+            onClick={() => editor.chain().focus().toggleItalic().run()}
+          >
+            <Italic size={16} />
+          </ToolbarButton>
+          <ToolbarButton
+            title="下划线"
+            active={marks.underline}
+            onClick={() => editor.chain().focus().toggleUnderline().run()}
+          >
+            <Underline size={16} />
+          </ToolbarButton>
+          <ToolbarButton
+            title="删除线"
+            active={marks.strike}
+            onClick={() => editor.chain().focus().toggleStrike().run()}
+          >
+            <Strikethrough size={16} />
+          </ToolbarButton>
+          <ToolbarButton
+            title="行内代码"
+            active={marks.code}
+            onClick={() => editor.chain().focus().toggleCode().run()}
+          >
+            <Code size={16} />
+          </ToolbarButton>
+          <div className="atiptap-notion-highlight">
+            <ToolbarButton
+              title="高亮"
+              active={marks.highlight || openMenu === 'highlight'}
+              onClick={() => setOpenMenu(openMenu === 'highlight' ? null : 'highlight')}
+            >
+              <Highlighter size={16} />
+            </ToolbarButton>
+            {openMenu === 'highlight' ? (
+              <div className="atiptap-notion-highlight__panel">
+                {HIGHLIGHT_COLORS.map(color => (
+                  <button
+                    key={color.value}
+                    type="button"
+                    title={color.label}
+                    className="atiptap-notion-highlight__swatch"
+                    style={{ background: color.value }}
+                    onMouseDown={event => event.preventDefault()}
+                    onClick={() => {
+                      editor.chain().focus().toggleHighlight({ color: color.value }).run();
+                      setOpenMenu(null);
+                    }}
+                  />
+                ))}
                 <button
-                  key={color.value}
                   type="button"
-                  title={color.label}
-                  className="atiptap-notion-highlight__swatch"
-                  style={{ background: color.value }}
+                  className="atiptap-notion-highlight__clear"
                   onMouseDown={event => event.preventDefault()}
                   onClick={() => {
-                    editor.chain().focus().toggleHighlight({ color: color.value }).run();
+                    editor.chain().focus().unsetHighlight().run();
                     setOpenMenu(null);
                   }}
-                />
-              ))}
-              <button
-                type="button"
-                className="atiptap-notion-highlight__clear"
-                onMouseDown={event => event.preventDefault()}
-                onClick={() => {
-                  editor.chain().focus().unsetHighlight().run();
-                  setOpenMenu(null);
-                }}
-              >
-                清除
-              </button>
-            </div>
-          ) : null}
-        </div>
-        <LinkPopover editor={editor} />
-      </div>
-      {marks.canAlign ? (
-        <>
-          <ToolbarDivider />
-          <div className="atiptap-notion-toolbar__group">
-            <ToolbarButton
-              title="左对齐"
-              active={marks.alignLeft}
-              onClick={() => editor.chain().focus().setTextAlign('left').run()}
-            >
-              <AlignLeft size={16} />
-            </ToolbarButton>
-            <ToolbarButton
-              title="居中"
-              active={marks.alignCenter}
-              onClick={() => editor.chain().focus().setTextAlign('center').run()}
-            >
-              <AlignCenter size={16} />
-            </ToolbarButton>
-            <ToolbarButton
-              title="右对齐"
-              active={marks.alignRight}
-              onClick={() => editor.chain().focus().setTextAlign('right').run()}
-            >
-              <AlignRight size={16} />
-            </ToolbarButton>
-            <ToolbarButton
-              title="两端对齐"
-              active={marks.alignJustify}
-              onClick={() => editor.chain().focus().setTextAlign('justify').run()}
-            >
-              <AlignJustify size={16} />
-            </ToolbarButton>
+                >
+                  清除
+                </button>
+              </div>
+            ) : null}
           </div>
-        </>
-      ) : null}
-      <ToolbarDivider />
-      <div className="atiptap-notion-toolbar__group">
-        <ToolbarButton title="图片" onClick={() => insertImageUploadNode(editor)}>
-          <ImageIcon size={16} />
-        </ToolbarButton>
-        <ToolbarButton
-          title="表格"
-          onClick={() =>
-            editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
-          }
-        >
-          <Table size={16} />
-        </ToolbarButton>
+          <LinkPopover editor={editor} />
+        </div>
+        {marks.canAlign ? (
+          <>
+            <ToolbarDivider />
+            <div className="atiptap-notion-toolbar__group">
+              <ToolbarButton
+                title="左对齐"
+                active={marks.alignLeft}
+                onClick={() => editor.chain().focus().setTextAlign('left').run()}
+              >
+                <AlignLeft size={16} />
+              </ToolbarButton>
+              <ToolbarButton
+                title="居中"
+                active={marks.alignCenter}
+                onClick={() => editor.chain().focus().setTextAlign('center').run()}
+              >
+                <AlignCenter size={16} />
+              </ToolbarButton>
+              <ToolbarButton
+                title="右对齐"
+                active={marks.alignRight}
+                onClick={() => editor.chain().focus().setTextAlign('right').run()}
+              >
+                <AlignRight size={16} />
+              </ToolbarButton>
+              <ToolbarButton
+                title="两端对齐"
+                active={marks.alignJustify}
+                onClick={() => editor.chain().focus().setTextAlign('justify').run()}
+              >
+                <AlignJustify size={16} />
+              </ToolbarButton>
+            </div>
+          </>
+        ) : null}
+        <ToolbarDivider />
+        <div className="atiptap-notion-toolbar__group">
+          <ToolbarButton title="图片" onClick={() => insertImageUploadNode(editor)}>
+            <ImageIcon size={16} />
+          </ToolbarButton>
+          <ToolbarButton title="文件" onClick={() => insertFileUploadNode(editor, 'file')}>
+            <Paperclip size={16} />
+          </ToolbarButton>
+          <ToolbarButton
+            title="表格"
+            onClick={() =>
+              editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+            }
+          >
+            <Table size={16} />
+          </ToolbarButton>
+        </div>
+        <span className="atiptap-notion-toolbar__spacer" />
+        <SearchReplacePanel editor={editor} open={searchOpen} onOpenChange={setSearchOpen} />
       </div>
     </div>
   );

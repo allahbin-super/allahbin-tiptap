@@ -2,11 +2,43 @@ import { Extension } from '@tiptap/core';
 import { FileHandler } from '@tiptap/extension-file-handler';
 import type { Editor } from '@tiptap/react';
 import type { UploaderFunc } from './ATiptapEdit';
+import { buildFileNodeContent } from './notion-like/file/file-actions';
+import { isImageMime } from './notion-like/file/file-kind';
 
 export type { UploaderFunc };
 
 const IMAGE_MIMES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/svg+xml'];
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+
+/** 常见非图片 MIME，用于 FileHandler 白名单；也接受空 type 靠扩展名分流 */
+const FILE_MIMES = [
+  ...IMAGE_MIMES,
+  'video/mp4',
+  'video/webm',
+  'video/ogg',
+  'video/quicktime',
+  'audio/mpeg',
+  'audio/mp3',
+  'audio/wav',
+  'audio/ogg',
+  'audio/mp4',
+  'audio/aac',
+  'audio/flac',
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'application/zip',
+  'application/x-zip-compressed',
+  'application/json',
+  'text/plain',
+  'text/csv',
+  'text/markdown',
+  'application/octet-stream'
+];
 
 export function fileToDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -60,6 +92,53 @@ export async function insertImageFiles(
   }
 }
 
+/** 插入非图片文件节点；必须有 fileUploader，只存 URL */
+export async function insertFileNodes(
+  editor: Editor,
+  files: File[],
+  upload?: UploaderFunc,
+  pos?: number
+) {
+  if (!upload || !editor.schema.nodes.file) {
+    return;
+  }
+  const nonImages = files.filter(file => !isImageMime(file.type, file.name));
+  let insertPos = pos;
+  for (const file of nonImages) {
+    const src = await upload(file, () => undefined);
+    if (!src) {
+      continue;
+    }
+    const content = buildFileNodeContent(file, src);
+    const chain = editor.chain().focus();
+    if (typeof insertPos === 'number') {
+      chain.insertContentAt(insertPos, content);
+      insertPos += 1;
+    } else {
+      chain.insertContent(content);
+    }
+    chain.run();
+  }
+}
+
+async function insertDroppedOrPastedFiles(
+  editor: Editor,
+  files: File[],
+  imageUpload?: UploaderFunc,
+  fileUpload?: UploaderFunc,
+  pos?: number
+) {
+  const images = files.filter(file => isImageMime(file.type, file.name));
+  const others = files.filter(file => !isImageMime(file.type, file.name));
+  const resolvedImageUpload = imageUpload || fileUpload;
+  if (images.length) {
+    await insertImageFiles(editor, images, resolvedImageUpload, pos);
+  }
+  if (others.length) {
+    await insertFileNodes(editor, others, fileUpload, pos);
+  }
+}
+
 function selectInsertedImage(editor: Editor) {
   const { $from } = editor.state.selection;
   for (let depth = $from.depth; depth >= 0; depth -= 1) {
@@ -98,34 +177,64 @@ type ImageUploadStorage = {
   requestUrlInsert?: () => void;
 };
 
+type FileUploaderStorage = {
+  upload?: UploaderFunc;
+};
+
 declare module '@tiptap/core' {
   interface Storage {
     imageUploader: ImageUploadStorage;
+    fileUploader: FileUploaderStorage;
   }
 }
 
-/** 把上传函数挂到 editor.storage，并处理粘贴 / 拖放图片 */
+export type CreateMediaUploadOptions = {
+  imageUploader?: UploaderFunc;
+  fileUploader?: UploaderFunc;
+};
+
+/** 把上传函数挂到 editor.storage，并处理粘贴 / 拖放图片与文件 */
 export function createImageUploadExtensions(upload?: UploaderFunc) {
+  return createMediaUploadExtensions({ imageUploader: upload });
+}
+
+/** 图片 + 文件粘贴/拖放分流 */
+export function createMediaUploadExtensions(options: CreateMediaUploadOptions = {}) {
+  const { imageUploader, fileUploader } = options;
   return [
     Extension.create({
       name: 'imageUploader',
       addStorage() {
         return {
-          upload,
+          upload: imageUploader || fileUploader,
           requestUrlInsert: undefined
         } satisfies ImageUploadStorage;
       }
     }),
+    Extension.create({
+      name: 'fileUploader',
+      addStorage() {
+        return {
+          upload: fileUploader
+        } satisfies FileUploaderStorage;
+      }
+    }),
     FileHandler.configure({
-      allowedMimeTypes: IMAGE_MIMES,
+      allowedMimeTypes: FILE_MIMES,
       consumePasteEvent: true,
       onPaste: (currentEditor, files) => {
-        const currentUpload = currentEditor.storage.imageUploader?.upload;
-        void insertImageFiles(currentEditor as Editor, files, currentUpload);
+        const editor = currentEditor as Editor;
+        const currentImageUpload =
+          editor.storage.imageUploader?.upload || editor.storage.fileUploader?.upload;
+        const currentFileUpload = editor.storage.fileUploader?.upload;
+        void insertDroppedOrPastedFiles(editor, files, currentImageUpload, currentFileUpload);
       },
       onDrop: (currentEditor, files, pos) => {
-        const currentUpload = currentEditor.storage.imageUploader?.upload;
-        void insertImageFiles(currentEditor as Editor, files, currentUpload, pos);
+        const editor = currentEditor as Editor;
+        const currentImageUpload =
+          editor.storage.imageUploader?.upload || editor.storage.fileUploader?.upload;
+        const currentFileUpload = editor.storage.fileUploader?.upload;
+        void insertDroppedOrPastedFiles(editor, files, currentImageUpload, currentFileUpload, pos);
       }
     })
   ];

@@ -1,4 +1,5 @@
 import { Extension } from '@tiptap/core';
+import { FindAndReplace } from '@tiptap/extension-find-and-replace';
 import { NodeRange } from '@tiptap/extension-node-range';
 import { Placeholder, TrailingNode } from '@tiptap/extensions';
 import { TextSelection } from '@tiptap/pm/state';
@@ -7,14 +8,27 @@ import type { Editor } from '@tiptap/react';
 import { EditorContent, useEditor } from '@tiptap/react';
 import classNames from 'classnames';
 import 'highlight.js/styles/github.css';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { UploaderFunc } from '../image-upload';
-import { createImageUploadExtensions, insertImageFiles, pickLocalImage } from '../image-upload';
+import {
+  createMediaUploadExtensions,
+  insertImageFiles,
+  pickLocalImage
+} from '../image-upload';
 import { StarterKit } from '../starter-kit';
 import { BlockDragHandle } from './BlockDragHandle';
+import { DocumentOutline, type OutlineMode } from './DocumentOutline';
 import { FloatingToolbar } from './FloatingToolbar';
 import { NotionToolbar } from './NotionToolbar';
 import { duplicateNode, moveBlock, setEditorMeta } from './block-actions';
+import {
+  FileNode,
+  FileNodeProvider,
+  FileUploadNode,
+  insertFileUploadNode,
+  type FileNodeInfo,
+  type FileRenderers
+} from './file';
 import {
   ImageUploadNode,
   NotionImage,
@@ -76,7 +90,17 @@ export type NotionLikeEditorProps = {
   editable?: boolean;
   className?: string;
   style?: React.CSSProperties;
+  /** 图片上传，返回 URL；未传时可用 fileUploader 兜底 */
   imageUploader?: UploaderFunc;
+  /**
+   * 非图片文件上传，返回 URL（必填才能插入视频/音频/附件）
+   * 文档只存 URL，不存原始文件
+   */
+  fileUploader?: UploaderFunc;
+  /** 按 kind 自定义文件块渲染；不传则用默认播放器 / 附件卡片 */
+  fileRenderers?: FileRenderers;
+  /** 文件块点击回调；附件未传时默认 window.open(src) */
+  onFileClick?: (info: FileNodeInfo, event: React.MouseEvent) => void;
   onChange?: (value: any, editor: Editor) => void;
   onReady?: (editor: Editor) => void;
   /**
@@ -90,7 +114,23 @@ export type NotionLikeEditorProps = {
    * @default true
    */
   bordered?: boolean;
+  /**
+   * 是否显示目录大纲
+   * @default true
+   */
+  showOutline?: boolean;
+  /**
+   * 目录展示模式
+   * - float：悬浮。左侧刻度条贴在内容边距内，悬停展开标题（默认）
+   * - fixed：固定。仍在左侧，展开后常显、不自动隐藏
+   * @default "float"
+   */
+  outlineMode?: OutlineMode;
+  /** 目录模式变化（图钉切换或受控更新） */
+  onOutlineModeChange?: (mode: OutlineMode) => void;
 };
+
+export type { OutlineMode };
 
 const getMarkdown = (editor: Editor) => {
   const markdownStorage = editor.storage as {
@@ -130,6 +170,8 @@ const normalizeContent = (value: any, mode: NotionContentMode) => {
   return value;
 };
 
+const MEDIA_PLACEHOLDER_NODES = new Set(['image', 'imageUpload', 'file', 'fileUpload']);
+
 const BlockShortcuts = Extension.create({
   name: 'atiptapBlockShortcuts',
   addKeyboardShortcuts() {
@@ -138,6 +180,7 @@ const BlockShortcuts = Extension.create({
       'Mod-Shift-ArrowUp': () => moveBlock(this.editor, -1),
       'Mod-Shift-ArrowDown': () => moveBlock(this.editor, 1),
       'Mod-Shift-i': () => insertImageUploadNode(this.editor),
+      'Mod-Shift-f': () => insertFileUploadNode(this.editor, 'file'),
       'Alt-Shift-l': () => setImageAlign(this.editor, 'left'),
       'Alt-Shift-e': () => setImageAlign(this.editor, 'center'),
       'Alt-Shift-r': () => setImageAlign(this.editor, 'right'),
@@ -158,10 +201,16 @@ export const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
   className,
   style,
   imageUploader,
+  fileUploader,
+  fileRenderers,
+  onFileClick,
   onChange,
   onReady,
   showToolbar = true,
-  bordered = true
+  bordered = true,
+  showOutline = true,
+  outlineMode = 'float',
+  onOutlineModeChange
 }) => {
   const onChangeRef = useRef(onChange);
   const onReadyRef = useRef(onReady);
@@ -169,9 +218,21 @@ export const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
   const lastValueRef = useRef(value);
   const [imageUrlOpen, setImageUrlOpen] = useState(false);
   const [imageUrl, setImageUrl] = useState('');
+  const [currentOutlineMode, setCurrentOutlineMode] = useState<OutlineMode>(outlineMode);
   onChangeRef.current = onChange;
   onReadyRef.current = onReady;
   modeRef.current = mode;
+
+  const resolvedImageUploader = imageUploader || fileUploader;
+
+  useEffect(() => {
+    setCurrentOutlineMode(outlineMode);
+  }, [outlineMode]);
+
+  const handleOutlineModeChange = (nextMode: OutlineMode) => {
+    setCurrentOutlineMode(nextMode);
+    onOutlineModeChange?.(nextMode);
+  };
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -190,6 +251,8 @@ export const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
         allowBase64: true
       }),
       ImageUploadNode,
+      FileNode,
+      FileUploadNode,
       NotionTableKit,
       TableHandleExtension,
       TableCellAttrs,
@@ -199,16 +262,23 @@ export const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
         node: 'paragraph',
         notAfter: ['paragraph']
       }),
-      ...createImageUploadExtensions(imageUploader),
+      FindAndReplace.configure({
+        injectCSS: false,
+        searchDebounceMs: 150
+      }),
+      ...createMediaUploadExtensions({
+        imageUploader: resolvedImageUploader,
+        fileUploader
+      }),
       Placeholder.configure({
         placeholder: ({ node }) => {
-          if (node.type.name === 'image' || node.type.name === 'imageUpload') {
+          if (MEDIA_PLACEHOLDER_NODES.has(node.type.name)) {
             return '';
           }
           return placeholder;
         },
         emptyNodeClass: ({ node }) => {
-          if (node.type.name === 'image' || node.type.name === 'imageUpload') {
+          if (MEDIA_PLACEHOLDER_NODES.has(node.type.name)) {
             return '';
           }
           return 'is-empty with-slash';
@@ -235,7 +305,7 @@ export const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
     }
   });
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!editor || editor.isDestroyed) {
       return;
     }
@@ -246,9 +316,10 @@ export const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
     if (!editor || editor.isDestroyed) {
       return;
     }
-    editor.storage.imageUploader.upload = imageUploader;
+    editor.storage.imageUploader.upload = imageUploader || fileUploader;
     editor.storage.imageUploader.requestUrlInsert = () => setImageUrlOpen(true);
-  }, [editor, imageUploader]);
+    editor.storage.fileUploader.upload = fileUploader;
+  }, [editor, imageUploader, fileUploader]);
 
   useEffect(() => {
     if (!editor || editor.isDestroyed || value === undefined) {
@@ -267,7 +338,10 @@ export const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
     'atiptap-notion',
     {
       'atiptap-notion--bordered': bordered,
-      'atiptap-notion--toolbar': showToolbar && editable
+      'atiptap-notion--toolbar': showToolbar && editable,
+      'atiptap-notion--outline': showOutline,
+      'atiptap-notion--outline-float': showOutline && currentOutlineMode === 'float',
+      'atiptap-notion--outline-fixed': showOutline && currentOutlineMode === 'fixed'
     },
     className
   );
@@ -281,73 +355,94 @@ export const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
   }
 
   return (
-    <div className={rootClassName} style={style}>
-      {showToolbar && editable ? <NotionToolbar editor={editor} /> : null}
-      <BlockDragHandle editor={editor} />
-      <FloatingToolbar editor={editor} />
-      <TableHandle editor={editor} />
-      <TableExtendButtons editor={editor} />
-      <TableSelectionOverlay editor={editor} cellMenu={TableCellMenu} />
-      <NotionSlashMenu editor={editor} />
-      {imageUrlOpen ? (
-        <div className="atiptap-notion-image-url">
-          <input
-            autoFocus
-            type="url"
-            className="atiptap-notion-link__input"
-            placeholder="输入图片地址 https://"
-            value={imageUrl}
-            onChange={event => setImageUrl(event.target.value)}
-            onKeyDown={event => {
-              if (event.key === 'Enter' && imageUrl.trim()) {
-                editor.chain().focus().setImage({ src: imageUrl.trim() }).run();
-                selectNearestImage(editor);
-                setImageUrl('');
-                setImageUrlOpen(false);
-              }
-              if (event.key === 'Escape') {
-                setImageUrlOpen(false);
-              }
-            }}
-          />
-          <button
-            type="button"
-            className="atiptap-notion-link__action"
-            onClick={() => {
-              if (!imageUrl.trim()) {
-                return;
-              }
-              editor.chain().focus().setImage({ src: imageUrl.trim() }).run();
-              selectNearestImage(editor);
-              setImageUrl('');
-              setImageUrlOpen(false);
-            }}
-          >
-            插入
-          </button>
-          <button
-            type="button"
-            className="atiptap-notion-link__action"
-            onClick={() => {
-              pickLocalImage(file => {
-                void insertImageFiles(editor, [file], imageUploader);
-                setImageUrlOpen(false);
-              });
-            }}
-          >
-            本地
-          </button>
-          <button
-            type="button"
-            className="atiptap-notion-link__action"
-            onClick={() => setImageUrlOpen(false)}
-          >
-            取消
-          </button>
+    <FileNodeProvider
+      fileUploader={fileUploader}
+      fileRenderers={fileRenderers}
+      onFileClick={onFileClick}
+    >
+      <div className={rootClassName} style={style}>
+        {showToolbar && editable ? <NotionToolbar editor={editor} /> : null}
+        <div className="atiptap-notion-body">
+          {showOutline ? (
+            <DocumentOutline
+              editor={editor}
+              mode={currentOutlineMode}
+              onModeChange={handleOutlineModeChange}
+            />
+          ) : null}
+          <div className="atiptap-notion-main">
+            {editable ? (
+              <>
+                <BlockDragHandle editor={editor} />
+                <FloatingToolbar editor={editor} />
+                <TableHandle editor={editor} />
+                <TableExtendButtons editor={editor} />
+                <TableSelectionOverlay editor={editor} cellMenu={TableCellMenu} />
+                <NotionSlashMenu editor={editor} />
+              </>
+            ) : null}
+            {imageUrlOpen ? (
+              <div className="atiptap-notion-image-url">
+                <input
+                  autoFocus
+                  type="url"
+                  className="atiptap-notion-link__input"
+                  placeholder="输入图片地址 https://"
+                  value={imageUrl}
+                  onChange={event => setImageUrl(event.target.value)}
+                  onKeyDown={event => {
+                    if (event.key === 'Enter' && imageUrl.trim()) {
+                      editor.chain().focus().setImage({ src: imageUrl.trim() }).run();
+                      selectNearestImage(editor);
+                      setImageUrl('');
+                      setImageUrlOpen(false);
+                    }
+                    if (event.key === 'Escape') {
+                      setImageUrlOpen(false);
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  className="atiptap-notion-link__action"
+                  onClick={() => {
+                    if (!imageUrl.trim()) {
+                      return;
+                    }
+                    editor.chain().focus().setImage({ src: imageUrl.trim() }).run();
+                    selectNearestImage(editor);
+                    setImageUrl('');
+                    setImageUrlOpen(false);
+                  }}
+                >
+                  插入
+                </button>
+                <button
+                  type="button"
+                  className="atiptap-notion-link__action"
+                  onClick={() => {
+                    pickLocalImage(file => {
+                      void insertImageFiles(editor, [file], resolvedImageUploader);
+                      setImageUrlOpen(false);
+                    });
+                  }}
+                >
+                  本地
+                </button>
+                <button
+                  type="button"
+                  className="atiptap-notion-link__action"
+                  onClick={() => setImageUrlOpen(false)}
+                >
+                  取消
+                </button>
+              </div>
+            ) : null}
+            <EditorContent editor={editor} className="atiptap-notion-content" />
+          </div>
         </div>
-      ) : null}
-      <EditorContent editor={editor} className="atiptap-notion-content" />
-    </div>
+      </div>
+    </FileNodeProvider>
   );
 };
 

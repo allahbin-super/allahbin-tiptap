@@ -4,6 +4,7 @@ import React, { forwardRef } from 'react';
 export type ButtonProps = {
   disabled?: boolean;
   isActive?: boolean;
+  title?: string;
   children: React.ReactNode;
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
   style?: React.CSSProperties | undefined;
@@ -11,11 +12,14 @@ export type ButtonProps = {
 };
 
 const TextButton = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ disabled, style, isActive, children, onClick, className }, ref) => {
+  ({ disabled, style, isActive, title, children, onClick, className }, ref) => {
     return (
       <button
+        type="button"
+        title={title}
         style={style}
         ref={ref}
+        onMouseDown={event => event.preventDefault()}
         onClick={onClick}
         disabled={disabled}
         className={classNames(

@@ -4,6 +4,7 @@ import type { PluginView, Transaction } from '@tiptap/pm/state';
 import { Plugin, PluginKey, TextSelection } from '@tiptap/pm/state';
 import { CellSelection, TableMap, moveTableColumn, moveTableRow } from '@tiptap/pm/tables';
 import { Decoration, DecorationSet, type EditorView } from '@tiptap/pm/view';
+import { onScrollParents } from '../scroll-parents';
 import { createTableDragImage } from './helpers/create-image';
 import { isValidPosition } from './pm-utils';
 import {
@@ -61,6 +62,7 @@ class TableHandleView implements PluginView {
   public tableElement: HTMLElement | undefined;
 
   public emitUpdate: () => void;
+  private detachScroll?: () => void;
 
   constructor(
     editor: Editor,
@@ -77,9 +79,16 @@ class TableHandleView implements PluginView {
 
     this.editorView.root.addEventListener('dragover', this.dragOverHandler as EventListener);
     this.editorView.root.addEventListener('drop', this.dropHandler as unknown as EventListener);
+    this.detachScroll = onScrollParents(this.editorView.dom, () => {
+      if (this.state?.show) {
+        this.update(this.editorView);
+      }
+    });
   }
 
   private viewMousedownHandler = (event: MouseEvent) => {
+    if (!this.editor.isEditable) return;
+
     this.mouseState = 'down';
 
     const { state, view } = this.editor;
@@ -501,6 +510,7 @@ class TableHandleView implements PluginView {
     );
     this.editorView.root.removeEventListener('dragover', this.dragOverHandler as EventListener);
     this.editorView.root.removeEventListener('drop', this.dropHandler as unknown as EventListener);
+    this.detachScroll?.();
   }
 }
 

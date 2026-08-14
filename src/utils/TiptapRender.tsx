@@ -5,6 +5,27 @@ import React from 'react';
 
 export type ILinkRender<T = any> = (node: React.ReactNode, mark: any, params: T) => React.ReactNode;
 
+export type FileKind = 'video' | 'audio' | 'file';
+
+export type FileNodeInfo = {
+  kind: FileKind;
+  src: string;
+  name: string;
+  mime: string;
+  size?: number | null;
+};
+
+export type FileNodeRenderProps = FileNodeInfo & {
+  selected: boolean;
+  defaultRender: () => React.ReactNode;
+};
+
+export type FileRenderers = {
+  video?: (props: FileNodeRenderProps) => React.ReactNode;
+  audio?: (props: FileNodeRenderProps) => React.ReactNode;
+  file?: (props: FileNodeRenderProps) => React.ReactNode;
+};
+
 export type IRenderConfig = {
   onLinkClick?: (p: any) => void;
   /**
@@ -19,6 +40,10 @@ export type IRenderConfig = {
    * 渲染的模式 - 普通 还是 公文 自定义 - 默认是gov
    */
   renderMode?: IATiptapProps['renderMode'];
+  /** 文件块自定义渲染（只读 JSON 渲染） */
+  fileRenderers?: FileRenderers;
+  /** 文件块点击 */
+  onFileClick?: (info: FileNodeInfo, event: React.MouseEvent) => void;
 };
 
 /**
@@ -388,6 +413,89 @@ class TiptapRender {
   }
 
   /**
+   * 渲染文件块（视频 / 音频 / 附件）
+   */
+  renderFile(item: IContent) {
+    const src = String(item.attrs?.src || '');
+    const name = String(item.attrs?.name || '');
+    const mime = String(item.attrs?.mime || '');
+    const size =
+      typeof item.attrs?.size === 'number'
+        ? item.attrs.size
+        : item.attrs?.size == null
+          ? null
+          : Number(item.attrs.size);
+    const kind: FileKind = mime.startsWith('video/')
+      ? 'video'
+      : mime.startsWith('audio/')
+        ? 'audio'
+        : 'file';
+    const info: FileNodeInfo = {
+      kind,
+      src,
+      name,
+      mime,
+      size: Number.isFinite(size as number) ? (size as number) : null
+    };
+
+    const handleActivate = (event: React.MouseEvent) => {
+      if (this.config.onFileClick) {
+        this.config.onFileClick(info, event);
+        return;
+      }
+      if (kind === 'file' && src) {
+        window.open(src, '_blank', 'noopener,noreferrer');
+      }
+    };
+
+    const defaultRender = () => {
+      if (kind === 'video') {
+        return (
+          <div className="atiptap-notion-file atiptap-notion-file--video">
+            <div className="atiptap-notion-file__titlebar" onClick={handleActivate}>
+              <span className="atiptap-notion-file__name">{name || '视频'}</span>
+            </div>
+            <video className="atiptap-notion-file__media" src={src} controls preload="metadata" />
+          </div>
+        );
+      }
+      if (kind === 'audio') {
+        return (
+          <div className="atiptap-notion-file atiptap-notion-file--audio">
+            <div className="atiptap-notion-file__titlebar" onClick={handleActivate}>
+              <span className="atiptap-notion-file__name">{name || '音频'}</span>
+            </div>
+            <audio className="atiptap-notion-file__audio" src={src} controls preload="metadata" />
+          </div>
+        );
+      }
+      return (
+        <button type="button" className="atiptap-notion-file atiptap-notion-file--card" onClick={handleActivate}>
+          <span className="atiptap-notion-file__meta">
+            <span className="atiptap-notion-file__name">{name || '附件'}</span>
+            <span className="atiptap-notion-file__sub">{mime || '文件'}</span>
+          </span>
+        </button>
+      );
+    };
+
+    const custom = this.config.fileRenderers?.[kind];
+    const content = custom
+      ? custom({
+          ...info,
+          selected: false,
+          defaultRender
+        })
+      : defaultRender();
+
+    return (
+      <div className="react-renderer node-file" contentEditable={false} key={item.key}>
+        <div className="atiptap-notion-file-node">{content}</div>
+      </div>
+    );
+  }
+
+  /**
    * 默认的渲染
    */
   renderDefault(item: any, key: number) {
@@ -457,6 +565,9 @@ class TiptapRender {
     // 如果是图片
     if (item.type === 'image') {
       return this.renderImage(item);
+    }
+    if (item.type === 'file') {
+      return this.renderFile(item);
     }
     // 判断是不是段落之类的type
     return this.renderDefault(item, index);

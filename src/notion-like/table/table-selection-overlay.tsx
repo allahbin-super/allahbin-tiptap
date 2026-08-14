@@ -1,11 +1,12 @@
-import { FloatingPortal, useFloating } from '@floating-ui/react';
+import { FloatingPortal, autoUpdate, useFloating } from '@floating-ui/react';
 import type { Node } from '@tiptap/pm/model';
 import type { EditorState, Selection } from '@tiptap/pm/state';
 import { CellSelection, cellAround } from '@tiptap/pm/tables';
 import type { EditorView } from '@tiptap/pm/view';
 import type { Editor } from '@tiptap/react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { domCellAround, getTable, rectEq } from './tiptap-table-utils';
+import { onScrollParents } from '../scroll-parents';
+import { domCellAround, rectEq } from './tiptap-table-utils';
 import { useResizeOverlay } from './use-resize-overlay';
 
 export interface TableSelectionOverlayProps {
@@ -235,15 +236,15 @@ export const TableSelectionOverlay: React.FC<TableSelectionOverlayProps> = ({
   const [isVisible, setIsVisible] = useState(true);
   const [selectionRect, setSelectionRect] = useState<DOMRect | null>(null);
   const [activeHandle, setActiveHandle] = useState<ResizeHandle>(null);
-  const [tableDom, setTableDom] = useState<HTMLElement | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const anchorCellRef = useRef<number | null>(null);
   const activeHandleRef = useRef<ResizeHandle>(null);
-  const containerRef = useRef<HTMLElement | null>(null);
 
   const { refs, floatingStyles, update } = useFloating({
-    placement: 'top-start'
+    placement: 'top-start',
+    strategy: 'fixed',
+    whileElementsMounted: autoUpdate
   });
 
   useEffect(() => {
@@ -254,7 +255,11 @@ export const TableSelectionOverlay: React.FC<TableSelectionOverlayProps> = ({
   }, [selectionRect, refs]);
 
   const updateSelectionRect = useCallback(() => {
-    if (!editor) return;
+    if (!editor?.isEditable) {
+      setIsVisible(false);
+      setSelectionRect(prev => (prev ? null : prev));
+      return;
+    }
 
     const { selection } = editor.state;
 
@@ -376,25 +381,6 @@ export const TableSelectionOverlay: React.FC<TableSelectionOverlayProps> = ({
     [editor, selectionRect, isMenuOpen, showResizeHandles]
   );
 
-  const updateTableDom = useCallback(() => {
-    if (!editor) {
-      setTableDom(null);
-      return;
-    }
-
-    const table = getTable(editor);
-    if (!table) {
-      setTableDom(null);
-      return;
-    }
-
-    setTableDom(prev => {
-      const currentDom = prev;
-      const newDom = editor.view.nodeDOM(table.pos) as HTMLElement | null;
-      return currentDom === newDom ? currentDom : newDom;
-    });
-  }, [editor]);
-
   const handleMenuOpenChange = useCallback(
     (isOpen: boolean) => {
       setIsMenuOpen(isOpen);
@@ -408,22 +394,19 @@ export const TableSelectionOverlay: React.FC<TableSelectionOverlayProps> = ({
 
     const handleSelectionUpdate = () => {
       updateSelectionRect();
-      updateTableDom();
     };
 
     editor.on('selectionUpdate', handleSelectionUpdate);
     updateSelectionRect();
-    updateTableDom();
+    const stopScroll = onScrollParents(editor.view.dom, handleSelectionUpdate);
 
     return () => {
       editor.off('selectionUpdate', handleSelectionUpdate);
+      stopScroll();
     };
-  }, [editor, updateSelectionRect, updateTableDom]);
+  }, [editor, updateSelectionRect]);
 
-  useEffect(() => {
-    const c = tableDom?.querySelector('.table-selection-overlay-container') as HTMLElement | null;
-    containerRef.current = c ?? null;
-  }, [tableDom]);
+  if (!editor?.isEditable) return null;
 
   if (!isVisible || !selectionRect) {
     return null;
@@ -446,7 +429,7 @@ export const TableSelectionOverlay: React.FC<TableSelectionOverlayProps> = ({
   };
 
   return (
-    <FloatingPortal root={containerRef.current}>
+    <FloatingPortal>
       <div
         ref={refs.setFloating}
         style={{

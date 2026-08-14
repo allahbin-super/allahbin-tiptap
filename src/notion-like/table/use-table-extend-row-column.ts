@@ -1,4 +1,11 @@
-import { offset, size, useFloating, useTransitionStyles, type Placement } from '@floating-ui/react';
+import {
+  autoUpdate,
+  offset,
+  size,
+  useFloating,
+  useTransitionStyles,
+  type Placement
+} from '@floating-ui/react';
 import { useCallback, useEffect, useMemo } from 'react';
 import type { Orientation } from './tiptap-table-utils';
 
@@ -37,6 +44,8 @@ function useTableExtendRowColumnButtonPosition(
   const { refs, update, context, floatingStyles } = useFloating({
     open: show,
     placement: config.placement,
+    strategy: 'fixed',
+    whileElementsMounted: autoUpdate,
     middleware: [
       offset(4),
       size({

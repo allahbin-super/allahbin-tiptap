@@ -1,7 +1,7 @@
 import { Button, Form, Input, Space, message } from 'antd';
 import React, { useState } from 'react';
 import ANotion from '../src/ANotion';
-import { mockImgUploader } from '../src/ATiptapEdit';
+import { mockFileUploader, mockImgUploader } from '../src/ATiptapEdit';
 
 type FormValues = {
   title: string;
@@ -61,6 +61,7 @@ const ANotionFormDemo = () => {
             mode="md"
             editable
             imageUploader={mockImgUploader}
+            fileUploader={mockFileUploader}
             style={{ minHeight: 220, background: '#fff' }}
           />
         </Form.Item>

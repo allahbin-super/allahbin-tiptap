@@ -2,6 +2,8 @@ import type { Editor, Range } from '@tiptap/react';
 import {
   CheckSquare,
   Code2,
+  File as FileIcon,
+  Film,
   Heading1,
   Heading2,
   Heading3,
@@ -9,10 +11,12 @@ import {
   List,
   ListOrdered,
   Minus,
+  Music,
   Quote,
   Table,
   Type
 } from 'lucide-react';
+import { insertFileUploadNode } from '../file';
 import type { SlashSuggestionItem } from './slash-types';
 import { isNodeInSchema } from './slash-utils';
 
@@ -27,6 +31,9 @@ type SlashItemType =
   | 'quote'
   | 'codeBlock'
   | 'image'
+  | 'video'
+  | 'audio'
+  | 'file'
   | 'table'
   | 'divider';
 
@@ -102,6 +109,27 @@ const itemMeta: Record<
     subtext: '上传占位，可选文件或拖放',
     keywords: ['image', 'img', 'picture', '图片'],
     badge: ImageIcon,
+    group: '插入'
+  },
+  video: {
+    title: '视频',
+    subtext: '上传视频，默认播放器',
+    keywords: ['video', 'mp4', '视频'],
+    badge: Film,
+    group: '插入'
+  },
+  audio: {
+    title: '音频',
+    subtext: '上传音频，默认播放器',
+    keywords: ['audio', 'mp3', '音乐', '音频'],
+    badge: Music,
+    group: '插入'
+  },
+  file: {
+    title: '文件',
+    subtext: '上传附件，仅保存 URL',
+    keywords: ['file', 'attachment', '附件', '文件', 'pdf'],
+    badge: FileIcon,
     group: '插入'
   },
   table: {
@@ -190,6 +218,27 @@ const itemActions: Record<
         return;
       }
       editor.storage.imageUploader?.requestUrlInsert?.();
+    }
+  },
+  video: {
+    check: editor => isNodeInSchema('fileUpload', editor) || isNodeInSchema('file', editor),
+    action: (editor, range) => {
+      editor.chain().focus().deleteRange(range).run();
+      insertFileUploadNode(editor, 'video');
+    }
+  },
+  audio: {
+    check: editor => isNodeInSchema('fileUpload', editor) || isNodeInSchema('file', editor),
+    action: (editor, range) => {
+      editor.chain().focus().deleteRange(range).run();
+      insertFileUploadNode(editor, 'audio');
+    }
+  },
+  file: {
+    check: editor => isNodeInSchema('fileUpload', editor) || isNodeInSchema('file', editor),
+    action: (editor, range) => {
+      editor.chain().focus().deleteRange(range).run();
+      insertFileUploadNode(editor, 'file');
     }
   },
   table: {

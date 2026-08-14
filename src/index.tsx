@@ -1,9 +1,17 @@
-export { mockImgUploader } from './ATiptapEdit';
+export { mockFileUploader, mockImgUploader } from './ATiptapEdit';
 export type { IATiptapProps } from './ATiptapEdit';
 
 export { default as ANotion } from './ANotion';
 export type { IANotionProps } from './ANotion';
-export type { NotionContentMode } from './notion-like';
+export type {
+  FileKind,
+  FileNodeInfo,
+  FileNodeRenderProps,
+  FileRenderers,
+  FileUploadAcceptPreset,
+  NotionContentMode,
+  OutlineMode
+} from './notion-like';
 
 export { ATiptapEditor } from './editor';
 export type { ATiptapEditorOptions, IContent, IContent2, IMark, ITiptapJson } from './editor';
@@ -21,3 +29,4 @@ export { default as TiptapRenderFactory } from './utils/TiptapRenderFactory';
 import ATiptap from './ATiptap';
 
 export default ATiptap;
+

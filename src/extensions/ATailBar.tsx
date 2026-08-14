@@ -19,16 +19,12 @@ export const ATailBar: React.FC<ATailBarProps> = ({
 }) => {
   return (
     <TextButton
+      className="atiptap-menu-bar__btn--wide"
+      title="落款"
       onClick={onClick}
       isActive={isActive}
       disabled={disabled}
-      style={{
-        width: 48,
-        justifyContent: 'center',
-        display: 'flex',
-        alignItems: 'center',
-        ...style
-      }}
+      style={style}
     >
       <span className={className}>落款</span>
     </TextButton>

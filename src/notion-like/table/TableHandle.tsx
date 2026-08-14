@@ -46,7 +46,7 @@ export const TableHandle: React.FC<{ editor: Editor | null }> = ({ editor }) => 
     });
   }, []);
 
-  if (!editor || !state) {
+  if (!editor || !editor.isEditable || !state) {
     return null;
   }
 

@@ -1,3 +1,4 @@
+import { Typography } from 'antd';
 import React, { useState } from 'react';
 import ATiptapEdit from '../src/ATiptapEdit';
 
@@ -5,45 +6,46 @@ const SimpleChatEditor = () => {
   const [value, setValue] = useState('');
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2>简单模式示例</h2>
-
-      {/* 聊天输入框示例 - 最简单模式 */}
+    <div style={{ maxWidth: 640, margin: '0 auto', color: 'rgba(0, 0, 0, 0.88)' }}>
+      <Typography.Paragraph type="secondary" style={{ marginBottom: 12 }}>
+        轻量输入场景：关闭标题、表格、图片等块级能力，适合聊天框或评论框。
+      </Typography.Paragraph>
       <div
         style={{
-          maxWidth: 600,
-          margin: '20px auto',
-          border: '1px solid #eee',
-          borderRadius: 4,
+          overflow: 'hidden',
+          background: '#fff',
+          border: '1px solid #d9d9d9',
+          borderRadius: 8,
+          boxShadow:
+            '0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 9px 28px 8px rgba(0, 0, 0, 0.05)'
         }}
       >
-        <h3>聊天输入框（禁用所有复杂功能）</h3>
         <ATiptapEdit
           simple
           height={120}
           editable
           bordered={false}
           value={value}
-          onChange={(val) => {
+          onChange={val => {
             setValue(val);
             console.log('输入内容：', val);
           }}
-          style={{
-            boxShadow: 'none',
-            padding: '8px 12px',
-          }}
         />
       </div>
-
-      {/* 内容预览 */}
-      <div style={{ maxWidth: 600, margin: '20px auto' }}>
-        <h3>当前输入内容预览：</h3>
+      <div style={{ marginTop: 16 }}>
+        <Typography.Text type="secondary">当前内容</Typography.Text>
         <pre
           style={{
-            background: '#f5f5f5',
-            padding: 16,
-            borderRadius: 4,
+            marginTop: 8,
+            marginBottom: 0,
+            padding: 12,
             overflow: 'auto',
+            color: 'rgba(0, 0, 0, 0.65)',
+            background: '#fafafa',
+            border: '1px solid #f0f0f0',
+            borderRadius: 6,
+            fontSize: 12,
+            lineHeight: 1.5714285714285714
           }}
         >
           {JSON.stringify(value, null, 2)}

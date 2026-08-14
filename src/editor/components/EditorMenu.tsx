@@ -1,8 +1,29 @@
 import classNames from 'classnames';
+import {
+  AlignCenter,
+  AlignLeft,
+  AlignRight,
+  Bold,
+  CheckSquare,
+  Code,
+  Code2,
+  Highlighter,
+  Image as ImageIcon,
+  Italic,
+  List,
+  ListOrdered,
+  Maximize2,
+  Minimize2,
+  Minus,
+  Quote,
+  Redo2,
+  Strikethrough,
+  Table,
+  Underline,
+  Undo2
+} from 'lucide-react';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ATailBar } from '../../extensions/ATailBar';
 import { ATitleBar } from '../../extensions/ATitleBar';
-import { AWenHaoBar } from '../../extensions/AWenHaoBar';
 import TextButton from '../../extensions/TextButton';
 import { insertImageFiles, pickLocalImage } from '../../image-upload';
 import { MenuBar } from '../../menubar';
@@ -25,8 +46,16 @@ export const EditorMenu: React.FC<{
   menuClassName?: string;
   onFullscreenChange: (v: boolean) => void;
   menuStyle?: React.CSSProperties;
-}> = ({ editor, disabledMenu = false, menuClassName, menuStyle, onFullscreenChange }) => {
-  const { fullscreen, editable } = useEditorContext();
+  showGovBlocks?: boolean;
+}> = ({
+  editor,
+  disabledMenu = false,
+  menuClassName,
+  menuStyle,
+  onFullscreenChange,
+  showGovBlocks = false
+}) => {
+  const { fullscreen, editable, editorStateVersion } = useEditorContext();
   const [resourceInput, setResourceInput] = useState<{
     type: 'image';
     value: string;
@@ -52,9 +81,8 @@ export const EditorMenu: React.FC<{
       return null;
     }
     const {
-      AWenHao,
-      ATail,
       ATitle,
+      heading,
       bulletList,
       orderedList,
       taskList,
@@ -64,18 +92,27 @@ export const EditorMenu: React.FC<{
       blockquote,
       horizontalRule
     } = editor.state.schema.nodes;
+    const showParagraphStyles = !!(ATitle || heading || showGovBlocks);
     const { bold, italic, strike, link, code, underline, highlight } = editor.state.schema.marks;
     const canAlign = editor.can().setTextAlign?.('left');
     return [
       [
         editor.menuEnableUndoRedo && (
-          <TextButton key="undo" onClick={() => editor.chain().focus().undo().run()}>
-            撤销
+          <TextButton
+            key="undo"
+            title="撤销"
+            onClick={() => editor.chain().focus().undo().run()}
+          >
+            <Undo2 size={16} />
           </TextButton>
         ),
         editor.menuEnableUndoRedo && (
-          <TextButton key="redo" onClick={() => editor.chain().focus().redo().run()}>
-            重做
+          <TextButton
+            key="redo"
+            title="重做"
+            onClick={() => editor.chain().focus().redo().run()}
+          >
+            <Redo2 size={16} />
           </TextButton>
         )
       ],
@@ -83,46 +120,51 @@ export const EditorMenu: React.FC<{
         bold && (
           <TextButton
             key="bold"
+            title="加粗"
             onClick={() => editor.chain().focus().toggleBold().run()}
             isActive={editor.isActive('bold')}
           >
-            加粗
+            <Bold size={16} />
           </TextButton>
         ),
         italic && (
           <TextButton
             key="italic"
+            title="斜体"
             onClick={() => editor.chain().focus().toggleItalic().run()}
             isActive={editor.isActive('italic')}
           >
-            斜体
+            <Italic size={16} />
           </TextButton>
         ),
         strike && (
           <TextButton
             key="strike"
+            title="删除线"
             onClick={() => editor.chain().focus().toggleStrike().run()}
             isActive={editor.isActive('strike')}
           >
-            删除线
+            <Strikethrough size={16} />
           </TextButton>
         ),
         underline && (
           <TextButton
             key="underline"
+            title="下划线"
             onClick={() => editor.chain().focus().toggleUnderline().run()}
             isActive={editor.isActive('underline')}
           >
-            下划线
+            <Underline size={16} />
           </TextButton>
         ),
         highlight && (
           <span key="highlight" className="atiptap-notion-highlight atiptap-menu-highlight">
             <TextButton
+              title="高亮"
               onClick={() => setHighlightOpen(open => !open)}
               isActive={editor.isActive('highlight') || highlightOpen}
             >
-              高亮
+              <Highlighter size={16} />
             </TextButton>
             {highlightOpen ? (
               <div className="atiptap-notion-highlight__panel">
@@ -158,93 +200,87 @@ export const EditorMenu: React.FC<{
         code && (
           <TextButton
             key="code"
+            title="行内代码"
             onClick={() => editor.chain().focus().toggleCode().run()}
             isActive={editor.isActive('code')}
           >
-            行内代码
+            <Code size={16} />
           </TextButton>
         ),
         canAlign && (
           <TextButton
             key="alignLeft"
+            title="左对齐"
             onClick={() => editor.chain().focus().setTextAlign('left').run()}
             isActive={editor.isActive({ textAlign: 'left' })}
           >
-            左对齐
+            <AlignLeft size={16} />
           </TextButton>
         ),
         canAlign && (
           <TextButton
             key="alignCenter"
+            title="居中"
             onClick={() => editor.chain().focus().setTextAlign('center').run()}
             isActive={editor.isActive({ textAlign: 'center' })}
           >
-            居中
+            <AlignCenter size={16} />
           </TextButton>
         ),
         canAlign && (
           <TextButton
             key="alignRight"
+            title="右对齐"
             onClick={() => editor.chain().focus().setTextAlign('right').run()}
             isActive={editor.isActive({ textAlign: 'right' })}
           >
-            右对齐
+            <AlignRight size={16} />
           </TextButton>
         )
       ],
       [
-        ATitle && <ATitleBar key="ATitle" editor={editor} />,
-        ATail && (
-          <ATailBar
-            key="ATail"
-            onClick={() => editor.chain().focus().toggleATail().run()}
-            isActive={editor.isActive('ATail')}
-            disabled={!editor.can().toggleATail?.() || false}
-          />
-        ),
-        AWenHao && (
-          <AWenHaoBar
-            key="AWenHao"
-            onClick={() => editor.chain().focus().toggleWenHao().run()}
-            isActive={editor.isActive('AWenHao')}
-            disabled={!editor.can().toggleWenHao?.() || false}
-          />
+        showParagraphStyles && (
+          <ATitleBar key="ATitle" editor={editor} showGovBlocks={showGovBlocks} />
         )
       ],
       [
         bulletList && (
           <TextButton
             key="bulletList"
+            title="无序列表"
             onClick={() => editor.chain().focus().toggleBulletList().run()}
             isActive={editor.isActive('bulletList')}
           >
-            无序列表
+            <List size={16} />
           </TextButton>
         ),
         orderedList && (
           <TextButton
             key="orderedList"
+            title="有序列表"
             onClick={() => editor.chain().focus().toggleOrderedList().run()}
             isActive={editor.isActive('orderedList')}
           >
-            有序列表
+            <ListOrdered size={16} />
           </TextButton>
         ),
         taskList && (
           <TextButton
             key="taskList"
+            title="任务列表"
             onClick={() => editor.chain().focus().toggleTaskList().run()}
             isActive={editor.isActive('taskList')}
           >
-            任务列表
+            <CheckSquare size={16} />
           </TextButton>
         )
       ],
       [
-        link && <LinkPopover key="link" editor={editor} compact={false} />,
+        link && <LinkPopover key="link" editor={editor} compact />,
         image && (
           <TextButton
             key="image"
+            title="图片"
             onClick={() => {
               const upload = editor.storage.imageUploader?.upload;
               if (upload) {
@@ -256,25 +292,27 @@ export const EditorMenu: React.FC<{
               setResourceInput({ type: 'image', value: '' });
             }}
           >
-            图片
+            <ImageIcon size={16} />
           </TextButton>
         ),
         table && (
           <TextButton
             key="table"
+            title="表格"
             onClick={() =>
               editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
             }
           >
-            表格
+            <Table size={16} />
           </TextButton>
         ),
         codeBlock && (
           <TextButton
             key="codeBlock"
+            title="代码块"
             onClick={() => editor.chain().focus().toggleCodeBlock().run()}
           >
-            代码块
+            <Code2 size={16} />
           </TextButton>
         )
       ],
@@ -282,17 +320,19 @@ export const EditorMenu: React.FC<{
         blockquote && (
           <TextButton
             key="blockquote"
+            title="引用"
             onClick={() => editor.chain().focus().toggleBlockquote().run()}
           >
-            引用
+            <Quote size={16} />
           </TextButton>
         ),
         horizontalRule && (
           <TextButton
             key="horizontalRule"
+            title="分割线"
             onClick={() => editor.chain().focus().setHorizontalRule().run()}
           >
-            分割线
+            <Minus size={16} />
           </TextButton>
         )
       ],
@@ -300,13 +340,14 @@ export const EditorMenu: React.FC<{
         editor.menuEnableFullscreen && (
           <TextButton
             key="fullscreen"
+            title={fullscreen ? '退出全屏' : '全屏'}
             onClick={() => {
               const newFullscreen = !fullscreen;
               editor.setFullscreen(newFullscreen);
               onFullscreenChange(newFullscreen);
             }}
           >
-            {fullscreen ? '退出全屏' : '全屏'}
+            {fullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
           </TextButton>
         )
       ]
@@ -325,17 +366,15 @@ export const EditorMenu: React.FC<{
     editable,
     fullscreen,
     highlightOpen,
+    showGovBlocks,
+    editorStateVersion,
     editor?.menuEnableUndoRedo,
     editor?.menuEnableFullscreen
   ]);
 
-  const handleButtonClick = (event: {
-    stopPropagation: () => void;
-    preventDefault: () => void;
-  }) => {
-    // 阻止事件冒泡，这将防止触发默认的表单提交事件
+  const handleButtonClick = (event: React.MouseEvent) => {
+    // 阻止冒泡，避免触发外层表单提交；不要 preventDefault，否则会干扰下拉菜单点击
     event.stopPropagation();
-    event.preventDefault();
   };
 
   if (!editable && !editor?.readOnlyShowMenu) {

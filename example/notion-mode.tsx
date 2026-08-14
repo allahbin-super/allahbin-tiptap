@@ -1,7 +1,7 @@
 import type { Editor } from '@tiptap/react';
 import React, { useRef, useState } from 'react';
 import ANotion, { type NotionContentMode } from '../src/ANotion';
-import { mockImgUploader } from '../src/ATiptapEdit';
+import { mockFileUploader, mockImgUploader } from '../src/ATiptapEdit';
 
 const buttonStyle: React.CSSProperties = {
   margin: '0 8px 8px 0',
@@ -121,6 +121,7 @@ const ANotionModeDemo = () => {
           value={value}
           onChange={onChange}
           imageUploader={mockImgUploader}
+          fileUploader={mockFileUploader}
           onReady={editor => {
             editorRef.current = editor;
             syncPreviewBoxes(editor);

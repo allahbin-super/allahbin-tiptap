@@ -11,8 +11,9 @@ import { ParseOptions } from '@tiptap/pm/model';
 import { EditorProps } from '@tiptap/pm/view';
 import type { Editor } from '@tiptap/react';
 import { ALink } from './a-link';
-import { createImageUploadExtensions } from './image-upload';
 import { EditorRender, EditorRenderProps, useEditor } from './editor';
+import { createImageUploadExtensions } from './image-upload';
+import type { FileNodeInfo, FileRenderers } from './notion-like';
 
 export type UploaderFunc = (
   file: File,
@@ -37,6 +38,22 @@ export const mockImgUploader: UploaderFunc = async (file, progressCallBack) => {
         resolve(src);
       }
     }, 300);
+  });
+};
+
+/** Demo 用文件上传：返回 object URL（仅存 URL，不写 base64） */
+export const mockFileUploader: UploaderFunc = async (file, progressCallBack) => {
+  const src = URL.createObjectURL(file);
+  return new Promise(resolve => {
+    let mockProgress = 1;
+    const t = setInterval(() => {
+      mockProgress++;
+      progressCallBack(mockProgress * 10);
+      if (mockProgress >= 10) {
+        clearInterval(t);
+        resolve(src);
+      }
+    }, 200);
   });
 };
 
@@ -96,6 +113,12 @@ export type IATiptapProps = Omit<EditorRenderProps, 'editor'> & {
   parseOptions?: ParseOptions;
   editable?: boolean;
   imageUploader?: UploaderFunc;
+  /** Notion 模式：非图片文件上传，返回 URL */
+  fileUploader?: UploaderFunc;
+  /** Notion 模式：文件块自定义渲染 */
+  fileRenderers?: FileRenderers;
+  /** Notion 模式：文件块点击 */
+  onFileClick?: (info: FileNodeInfo, event: React.MouseEvent) => void;
   starterKitOpt?: StarterKitOptions;
   /**
    * @description 回传模式
@@ -117,6 +140,17 @@ export type IATiptapProps = Omit<EditorRenderProps, 'editor'> & {
    * @default true
    */
   showToolbar?: boolean;
+  /**
+   * Notion 块编辑器是否显示目录
+   * @default true
+   */
+  showOutline?: boolean;
+  /**
+   * Notion 块编辑器目录模式：悬浮（悬停展开）或固定（左侧常显，不自动隐藏）
+   * @default "float"
+   */
+  outlineMode?: 'float' | 'fixed';
+  onOutlineModeChange?: (mode: 'float' | 'fixed') => void;
   /**
    * @description 富文本的值 字符串或者json
    */
@@ -190,37 +224,53 @@ const ATiptapEdit: React.FC<IATiptapProps> = ({
     ...starterKitOpt
   };
   const imageEnabled = starterKitOptions.image !== false;
+  const govBlocksEnabled = !simple && renderMode === 'gov';
 
-  const editor = useEditor({
-    extensions: [
-      ...(simple ? [] : [ATail, AWenHao, ATitle]),
-      ALink,
-      StarterKit.configure(starterKitOptions),
-      ...(imageEnabled ? createImageUploadExtensions(imageUploader) : [])
-    ],
-    onChange: (doc, editorNow) => {
-      let strValue: any;
-      if (mode === 'json') {
-        strValue = doc;
-      } else if (mode === 'md') {
-        strValue = editorNow.getMarkdown();
-      } else {
-        strValue = editorNow.getHTML();
+  useEffect(() => {
+    setIsReady(false);
+  }, [govBlocksEnabled, simple]);
+
+  const editor = useEditor(
+    {
+      menuEnableFullscreen: !simple,
+      extensions: [
+        ...(simple ? [] : [ATitle]),
+        ...(govBlocksEnabled ? [ATail, AWenHao] : []),
+        ALink,
+        StarterKit.configure(starterKitOptions),
+        ...(imageEnabled ? createImageUploadExtensions(imageUploader) : [])
+      ],
+      onChange: (doc, editorNow) => {
+        let strValue: any;
+        if (mode === 'json') {
+          strValue = doc;
+        } else if (mode === 'md') {
+          strValue = editorNow.getMarkdown();
+        } else {
+          strValue = editorNow.getHTML();
+        }
+        setCurrentValue(strValue);
+        onChange?.(strValue, editorNow);
+      },
+      editorProps: editorProps,
+      editable: props.editable,
+      parseOptions: parseOptions || {},
+      onReady: nowEditor => {
+        if (debug) {
+          console.log('editor onReady', nowEditor);
+        }
+        // 切换公文扩展重建时，恢复当前内容
+        const initial = value ?? currentValue;
+        if (initial) {
+          nowEditor.setContent(initial || '');
+          setCurrentValue(initial);
+        }
+        onReady?.(nowEditor);
+        setIsReady(true);
       }
-      setCurrentValue(strValue);
-      onChange?.(strValue, editorNow);
     },
-    editorProps: editorProps,
-    editable: props.editable,
-    parseOptions: parseOptions || {},
-    onReady: nowEditor => {
-      if (debug) {
-        console.log('editor onReady', nowEditor);
-      }
-      onReady?.(nowEditor);
-      setIsReady(true);
-    }
-  });
+    [govBlocksEnabled, simple]
+  );
 
   useEffect(() => {
     if (editor?.storage.imageUploader) {
@@ -251,18 +301,22 @@ const ATiptapEdit: React.FC<IATiptapProps> = ({
     }
   }, [value, isReady]);
 
+  const cssHeight = typeof editorHeight === 'number' ? `${editorHeight}px` : editorHeight;
+
   return (
     <div
       className={`atiptap_main_${renderMode} atiptap_bordered_${props.editable}_${props.bordered} ${
         simple ? 'atiptap_simple' : ''
       }`}
+      style={simple ? ({ '--atiptap-editor-height': cssHeight } as React.CSSProperties) : undefined}
     >
       <EditorRender
         editor={editor}
         style={{
-          height: editorHeight,
+          ...(simple ? {} : { height: editorHeight }),
           ...style
         }}
+        showGovBlocks={govBlocksEnabled}
         onFullscreenChange={() => {
           setEditorHeight('100%');
         }}
