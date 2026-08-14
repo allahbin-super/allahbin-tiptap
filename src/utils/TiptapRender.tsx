@@ -536,6 +536,10 @@ class TiptapRender {
         return <br key={item.key} />;
       }
 
+      if (item.type === 'mention') {
+        return this.renderMention(item);
+      }
+
       // 处理其他类型的内容
       if (item.content) {
         return this.renderType(item, index);
@@ -543,6 +547,23 @@ class TiptapRender {
 
       return <span key={item.key}>{item.text}</span>;
     });
+  }
+
+  /** 只读渲染 @提及芯片 */
+  renderMention(item: IContent): React.ReactNode {
+    const attrs = (item as any).attrs || {};
+    const label = attrs.label || attrs.id || '';
+    return (
+      <span
+        key={item.key}
+        className="atiptap-notion-mention"
+        data-mention=""
+        data-id={attrs.id || ''}
+        data-label={label}
+      >
+        @{label}
+      </span>
+    );
   }
 
   renderType(item: IContent, index: number): React.ReactNode {
@@ -554,6 +575,9 @@ class TiptapRender {
     }
     if (item.type === 'hardBreak') {
       return this.renderHardBreak(item);
+    }
+    if (item.type === 'mention') {
+      return this.renderMention(item);
     }
     if (item.type === 'ATitle') {
       return this.renderATitle(item);

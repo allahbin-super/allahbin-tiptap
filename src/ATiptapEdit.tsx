@@ -13,7 +13,8 @@ import type { Editor } from '@tiptap/react';
 import { ALink } from './a-link';
 import { EditorRender, EditorRenderProps, useEditor } from './editor';
 import { createImageUploadExtensions } from './image-upload';
-import type { FileNodeInfo, FileRenderers } from './notion-like';
+import { MentionNode, NotionMentionMenu } from './notion-like';
+import type { FileNodeInfo, FileRenderers, MentionItemsResolver } from './notion-like';
 
 export type UploaderFunc = (
   file: File,
@@ -176,6 +177,11 @@ export type IATiptapProps = Omit<EditorRenderProps, 'editor'> & {
    * @description 简单模式的配置项，可以指定禁用哪些功能
    */
   simpleConfigure?: Partial<SimpleConfigureOptions>;
+  /**
+   * 启用 @ 提及：传入候选人列表或按 query 解析函数。
+   * 有值时注册 mention 节点并挂载 @ 菜单，支持所有渲染模式（含 simple）。
+   */
+  mentionItems?: MentionItemsResolver;
 };
 
 const ATiptapEdit: React.FC<IATiptapProps> = ({
@@ -193,6 +199,7 @@ const ATiptapEdit: React.FC<IATiptapProps> = ({
   renderMode = simple ? 'normal' : 'gov',
   simpleConfigure: userSimpleConfigure,
   imageUploader,
+  mentionItems,
   ...props
 }) => {
   // 编辑器是否初始化完成
@@ -225,10 +232,11 @@ const ATiptapEdit: React.FC<IATiptapProps> = ({
   };
   const imageEnabled = starterKitOptions.image !== false;
   const govBlocksEnabled = !simple && renderMode === 'gov';
+  const hasMention = !!mentionItems;
 
   useEffect(() => {
     setIsReady(false);
-  }, [govBlocksEnabled, simple]);
+  }, [govBlocksEnabled, simple, hasMention]);
 
   const editor = useEditor(
     {
@@ -238,7 +246,8 @@ const ATiptapEdit: React.FC<IATiptapProps> = ({
         ...(govBlocksEnabled ? [ATail, AWenHao] : []),
         ALink,
         StarterKit.configure(starterKitOptions),
-        ...(imageEnabled ? createImageUploadExtensions(imageUploader) : [])
+        ...(imageEnabled ? createImageUploadExtensions(imageUploader) : []),
+        ...(hasMention ? [MentionNode] : [])
       ],
       onChange: (doc, editorNow) => {
         let strValue: any;
@@ -269,7 +278,7 @@ const ATiptapEdit: React.FC<IATiptapProps> = ({
         setIsReady(true);
       }
     },
-    [govBlocksEnabled, simple]
+    [govBlocksEnabled, simple, hasMention]
   );
 
   useEffect(() => {
@@ -322,6 +331,7 @@ const ATiptapEdit: React.FC<IATiptapProps> = ({
         }}
         {...props}
       />
+      {hasMention && <NotionMentionMenu editor={editor} mentionItems={mentionItems} />}
     </div>
   );
 };

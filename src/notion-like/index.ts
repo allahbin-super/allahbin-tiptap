@@ -23,6 +23,17 @@ export type {
 } from './file';
 export { ImageUploadNode, NotionImage } from './image';
 export {
+  MentionNode,
+  NotionMentionMenu
+} from './mention';
+export type {
+  MentionItemsContext,
+  MentionItemsResolver,
+  MentionNodeAttrs,
+  MentionSuggestionItem,
+  NotionMentionMenuProps
+} from './mention';
+export {
   NOTION_THEME_CLASS,
   useNotionThemeClassName,
   useNotionThemeRootProps,

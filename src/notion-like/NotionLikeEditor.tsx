@@ -36,6 +36,8 @@ import {
 } from './image';
 import './notion-like.css';
 import { NOTION_THEME_CLASS, NotionThemeProvider, mergeNotionThemeVars } from './notion-theme';
+import { MentionNode, NotionMentionMenu } from './mention';
+import type { MentionItemsResolver } from './mention';
 import { NotionSlashMenu } from './slash/SlashSuggestionMenu';
 import type { SlashSuggestionItem } from './slash/slash-types';
 import {
@@ -145,6 +147,11 @@ export type NotionLikeEditorProps = {
   extraExtensions?: AnyExtension[];
   /** 追加斜杠菜单项（内置项在前）；也可传 (editor) => items */
   slashItems?: SlashSuggestionItem[] | ((editor: Editor) => SlashSuggestionItem[]);
+  /**
+   * 启用 @提及：传入候选人列表或按 query 解析函数。
+   * 有值时注册 mention 节点并挂载 @ 菜单；自定义提及节点优先 mode="json"。
+   */
+  mentionItems?: MentionItemsResolver;
   /** 工具栏额外按钮，插在图片/文件/表格之后、搜索之前 */
   toolbarExtra?: React.ReactNode | ((editor: Editor) => React.ReactNode);
   /** 拖拽句柄块图标；返回非 null 时覆盖内置映射 */
@@ -239,6 +246,7 @@ export const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
   onOutlineModeChange,
   extraExtensions,
   slashItems,
+  mentionItems,
   toolbarExtra,
   getBlockIcon,
   blockMenuExtra,
@@ -256,7 +264,14 @@ export const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
   modeRef.current = mode;
 
   const resolvedImageUploader = imageUploader || fileUploader;
-  const resolvedExtraExtensions = useMemo(() => extraExtensions ?? [], [extraExtensions]);
+  const mentionEnabled = mentionItems != null;
+  const resolvedExtraExtensions = useMemo(() => {
+    const list = [...(extraExtensions ?? [])];
+    if (mentionEnabled) {
+      list.unshift(MentionNode);
+    }
+    return list;
+  }, [extraExtensions, mentionEnabled]);
 
   useEffect(() => {
     setCurrentOutlineMode(outlineMode);
@@ -429,6 +444,7 @@ export const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
                   <TableExtendButtons editor={editor} />
                   <TableSelectionOverlay editor={editor} cellMenu={TableCellMenu} />
                   <NotionSlashMenu editor={editor} slashItems={slashItems} />
+                  <NotionMentionMenu editor={editor} mentionItems={mentionItems} />
                 </>
               ) : null}
               {typeof children === 'function' ? children(editor) : children}

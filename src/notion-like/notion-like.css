@@ -1098,6 +1098,23 @@
   color: var(--atiptap-color-primary);
 }
 
+.atiptap-notion-mention-decoration {
+  color: var(--atiptap-color-primary);
+}
+
+.atiptap-notion-mention,
+.atiptap-notion .ProseMirror .atiptap-notion-mention {
+  display: inline;
+  padding: 1px 4px;
+  margin: 0 1px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--atiptap-color-primary) 12%, transparent);
+  color: var(--atiptap-color-primary);
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: default;
+}
+
 .atiptap-notion .ProseMirror mark {
   border-radius: 2px;
   padding: 0 2px;
