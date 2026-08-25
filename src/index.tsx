@@ -1,5 +1,5 @@
 export { mockFileUploader, mockImgUploader } from './ATiptapEdit';
-export type { IATiptapProps } from './ATiptapEdit';
+export type { IATiptapContentMode, IATiptapProps } from './ATiptapEdit';
 
 export { default as ANotion } from './ANotion';
 export type { IANotionProps } from './ANotion';

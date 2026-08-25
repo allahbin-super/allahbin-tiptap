@@ -107,6 +107,9 @@ export type SimpleConfigureOptions = {
   textStyle?: false;
 };
 
+/** 编辑器回传 / 赋值的数据格式 */
+export type IATiptapContentMode = 'html' | 'md' | 'json';
+
 export type IATiptapProps = Omit<EditorRenderProps, 'editor'> & {
   onChange?: (doc: any, editor: Editor) => void;
   onReady?: (editor: Editor) => void;
@@ -122,10 +125,13 @@ export type IATiptapProps = Omit<EditorRenderProps, 'editor'> & {
   onFileClick?: (info: FileNodeInfo, event: React.MouseEvent) => void;
   starterKitOpt?: StarterKitOptions;
   /**
-   * @description 回传模式
-   * @default "json"
+   * 回传 / 赋值的数据格式。
+   * - `md`：Markdown 字符串（默认）
+   * - `html`：HTML 字符串
+   * - `json`：Tiptap JSON 对象
+   * @default "md"
    */
-  mode?: 'html' | 'md' | 'json';
+  mode?: IATiptapContentMode;
   /**
    * 渲染的模式：公文皮肤 / 普通皮肤 / 自定义 / Notion 块编辑器
    * @default "gov"
@@ -191,7 +197,7 @@ const ATiptapEdit: React.FC<IATiptapProps> = ({
   starterKitOpt,
   parseOptions,
   editorProps,
-  mode = 'json',
+  mode = 'md',
   onChange,
   debug,
   height = 500,
