@@ -2,6 +2,7 @@ import { NodeSelection } from '@tiptap/pm/state';
 import type { Editor, NodeViewProps } from '@tiptap/react';
 import { NodeViewContent, NodeViewWrapper } from '@tiptap/react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { ImagePreviewOverlay } from '../../image-preview';
 import { isValidPosition } from './image-utils';
 
 type ResizeParams = {
@@ -62,6 +63,7 @@ const ResizableImage: React.FC<{
     initialWidth ? Number(initialWidth) : undefined
   );
   const [showHandles, setShowHandles] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const isResizingRef = useRef(false);
   const isMountedRef = useRef(true);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -94,6 +96,10 @@ const ResizableImage: React.FC<{
       }
       event.preventDefault();
       event.stopPropagation();
+      if (!editor.isEditable) {
+        setPreviewOpen(true);
+        return;
+      }
       const pos = getPos();
       if (isValidPosition(pos)) {
         editor.chain().focus().setNodeSelection(pos).run();
@@ -229,6 +235,9 @@ const ResizableImage: React.FC<{
           data-placeholder="添加图片说明..."
         />
       </div>
+      {previewOpen ? (
+        <ImagePreviewOverlay src={src} alt={alt} onClose={() => setPreviewOpen(false)} />
+      ) : null}
     </NodeViewWrapper>
   );
 };

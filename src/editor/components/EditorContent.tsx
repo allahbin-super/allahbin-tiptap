@@ -1,6 +1,7 @@
 import { EditorContent as TEditorContent } from '@tiptap/react';
 import classNames from 'classnames';
-import React from 'react';
+import React, { useCallback, useState } from 'react';
+import { ImagePreviewOverlay, getPreviewableImageSrc } from '../../image-preview';
 import type { ATiptapEditor } from '../ATiptapEditor';
 
 export type EditorContentProps = {
@@ -17,6 +18,26 @@ export const EditorContent: React.FC<EditorContentProps> = ({
   children
 }) => {
   const cls = classNames('atiptap-content', contentClassName);
+  const [previewSrc, setPreviewSrc] = useState<string | null>(null);
+
+  const handleClick = useCallback(
+    (event: React.MouseEvent) => {
+      if (!editor || editor.isEditable) {
+        return;
+      }
+      const src = getPreviewableImageSrc(event.target);
+      if (!src) {
+        return;
+      }
+      event.preventDefault();
+      setPreviewSrc(src);
+    },
+    [editor]
+  );
+
+  const preview = previewSrc ? (
+    <ImagePreviewOverlay src={previewSrc} onClose={() => setPreviewSrc(null)} />
+  ) : null;
 
   if (editor && editor.isEmpty && editor.isReadOnly) {
     return (
@@ -27,9 +48,17 @@ export const EditorContent: React.FC<EditorContentProps> = ({
   }
 
   return (
-    <TEditorContent className={cls} style={contentStyle} editor={editor}>
-      {children}
-    </TEditorContent>
+    <>
+      <TEditorContent
+        className={cls}
+        style={contentStyle}
+        editor={editor}
+        onClickCapture={handleClick}
+      >
+        {children}
+      </TEditorContent>
+      {preview}
+    </>
   );
 };
 

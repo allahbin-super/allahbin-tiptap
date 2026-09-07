@@ -97,6 +97,22 @@
   width: 100% !important;
 }
 
+.atiptap-content img {
+  max-width: 100%;
+  height: auto;
+}
+
+.atiptap_bordered_false_true .atiptap-content img,
+.atiptap_bordered_false_false .atiptap-content img {
+  cursor: zoom-in;
+  transition: opacity 0.2s cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+
+.atiptap_bordered_false_true .atiptap-content img:hover,
+.atiptap_bordered_false_false .atiptap-content img:hover {
+  opacity: 0.92;
+}
+
 /* 无边框模式 */
 .atiptap_bordered_true_false .atiptap-editor,
 .atiptap_bordered_false_false .atiptap-editor {

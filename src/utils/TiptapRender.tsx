@@ -1,7 +1,9 @@
 import { IATiptapProps, IContent2, ITiptapJson } from '@allahbin/tiptap';
-import { IContent } from '../editor';
 import hljs from 'highlight.js';
 import React from 'react';
+import { IContent } from '../editor';
+import { PreviewableImage, toCssSize } from '../image-preview';
+import '../image-preview/image-preview.css';
 
 export type ILinkRender<T = any> = (node: React.ReactNode, mark: any, params: T) => React.ReactNode;
 
@@ -44,6 +46,10 @@ export type IRenderConfig = {
   fileRenderers?: FileRenderers;
   /** 文件块点击 */
   onFileClick?: (info: FileNodeInfo, event: React.MouseEvent) => void;
+  /**
+   * 图片点击。传入则覆盖内置大图预览。
+   */
+  onImageClick?: (src: string, event: React.MouseEvent) => void;
   /**
    * 按节点 type 自定义只读渲染（优先于内置分支）。
    * helpers.renderContent 可递归渲染子内容。
@@ -401,22 +407,35 @@ class TiptapRender {
    * 渲染图片
    */
   renderImage(item: IContent) {
-    const imgClass = `atiptap-image atiptap-image__align-${item.attrs.align}`;
+    const attrs = (item.attrs || {}) as IContent['attrs'] & {
+      alt?: string;
+      'data-align'?: string;
+    };
+    const align = attrs['data-align'] || attrs.align || 'center';
+    const width = toCssSize(attrs.width);
+    const src = String(attrs.src || '');
+    const alt = attrs.alt || '';
+    const caption = item.content?.length ? this.renderContent(item.content) : null;
+    const onPreviewClick = this.config.onImageClick
+      ? (imageSrc: string, event: React.MouseEvent) => {
+          this.config.onImageClick?.(imageSrc, event);
+        }
+      : undefined;
     return (
       <div className="react-renderer node-image" contentEditable={false} key={item.key}>
-        <div
-          data-drag-handle="true"
-          className={imgClass}
-          style={{
-            whiteSpace: 'normal'
-          }}
-        >
-          <div className="atiptap-image__view">
-            <img
-              src={item.attrs.src}
-              alt=""
-              style={{ width: item.attrs.width, height: item.attrs.height }}
+        <div className={`atiptap-image atiptap-image__align-${align}`}>
+          <div
+            className="atiptap-image__view"
+            style={width ? { width, maxWidth: '100%' } : undefined}
+          >
+            <PreviewableImage
+              src={src}
+              alt={alt}
+              width={width}
+              className="atiptap-image-previewable"
+              onPreviewClick={onPreviewClick}
             />
+            {caption ? <div className="atiptap-image__caption">{caption}</div> : null}
           </div>
         </div>
       </div>

@@ -1,0 +1,179 @@
+/* 灯箱挂到 body，需自带 token 回退（不依赖 .atiptap-editor） */
+.atiptap-image-preview {
+  --atiptap-color-primary: #1677ff;
+  --atiptap-color-text: rgba(0, 0, 0, 0.88);
+  --atiptap-color-bg: #fff;
+  --atiptap-border-radius: 6px;
+  --atiptap-box-shadow:
+    0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 3px 6px -4px rgba(0, 0, 0, 0.12),
+    0 9px 28px 8px rgba(0, 0, 0, 0.05);
+  --atiptap-preview-ease: cubic-bezier(0.215, 0.61, 0.355, 1);
+  position: fixed;
+  inset: 0;
+  z-index: 1080;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 48px 24px 88px;
+  background: rgba(0, 0, 0, 0.45);
+  cursor: zoom-out;
+  opacity: 0;
+  transition: opacity 0.2s var(--atiptap-preview-ease);
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
+    sans-serif;
+}
+
+.atiptap-image-preview.is-open {
+  opacity: 1;
+}
+
+.atiptap-image-preview__img {
+  display: block;
+  max-width: 90vw;
+  max-height: calc(100vh - 140px);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: var(--atiptap-border-radius);
+  box-shadow: var(--atiptap-box-shadow);
+  cursor: zoom-in;
+  user-select: none;
+  touch-action: none;
+  transform-origin: center center;
+  opacity: 0;
+  transition:
+    opacity 0.2s var(--atiptap-preview-ease),
+    transform 0.2s var(--atiptap-preview-ease);
+}
+
+.atiptap-image-preview.is-open .atiptap-image-preview__img {
+  opacity: 1;
+}
+
+.atiptap-image-preview__img.is-zoomable {
+  cursor: grab;
+}
+
+.atiptap-image-preview__img.is-dragging {
+  cursor: grabbing;
+  transition: none;
+}
+
+.atiptap-image-preview__ops {
+  position: absolute;
+  bottom: 32px;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 8px;
+  border-radius: 100px;
+  background: rgba(0, 0, 0, 0.1);
+  transform: translateX(-50%) translateY(8px);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.2s var(--atiptap-preview-ease),
+    transform 0.2s var(--atiptap-preview-ease);
+}
+
+.atiptap-image-preview.is-open .atiptap-image-preview__ops {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
+.atiptap-image-preview__op {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  transition:
+    background 0.2s var(--atiptap-preview-ease),
+    color 0.2s var(--atiptap-preview-ease),
+    transform 0.12s var(--atiptap-preview-ease);
+}
+
+.atiptap-image-preview__op:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.atiptap-image-preview__op:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.atiptap-image-preview__op:disabled {
+  color: rgba(255, 255, 255, 0.35);
+  cursor: not-allowed;
+}
+
+.atiptap-image-preview__op svg {
+  width: 18px;
+  height: 18px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atiptap-image-preview,
+  .atiptap-image-preview__img,
+  .atiptap-image-preview__ops,
+  .atiptap-image-preview__op {
+    transition: none;
+  }
+
+  .atiptap-image-preview__ops {
+    transform: translateX(-50%);
+  }
+}
+
+/* TiptapRender / jsonToDom 图片块 */
+.atiptap-image {
+  display: flex;
+  justify-content: center;
+  margin: 8px 0;
+  line-height: 0;
+}
+
+.atiptap-image__align-left {
+  justify-content: flex-start;
+}
+
+.atiptap-image__align-right {
+  justify-content: flex-end;
+}
+
+.atiptap-image__view {
+  position: relative;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.atiptap-image__view img,
+.atiptap-image-previewable {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  cursor: zoom-in;
+  transition: opacity 0.2s cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+
+.atiptap-image__view img:hover,
+.atiptap-image-previewable:hover {
+  opacity: 0.92;
+}
+
+.atiptap-image__caption {
+  margin-top: 6px;
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 12px;
+  line-height: 1.5714285714285714;
+  text-align: center;
+}
