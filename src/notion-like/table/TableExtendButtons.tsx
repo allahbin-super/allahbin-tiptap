@@ -24,43 +24,63 @@ const ExtendButton: React.FC<{
   onMouseUp: () => void;
 }> = ({ editor, orientation, onMouseDown, onMouseUp }) => {
   const state = useTableHandleState(editor);
+  const stateRef = useRef(state);
+  stateRef.current = state;
   const isRow = orientation === 'row';
   const movedRef = useRef(false);
+  const draggingRef = useRef(false);
   const [dragState, setDragState] = useState<{
     startPos: number;
     originalHeight: number;
     originalWidth: number;
   } | null>(null);
 
+  const finishDrag = useCallback(() => {
+    if (!draggingRef.current) {
+      return;
+    }
+    draggingRef.current = false;
+    setDragState(null);
+    document.documentElement.style.removeProperty('cursor');
+    onMouseUp();
+  }, [onMouseUp]);
+
   const startDrag = (event: React.MouseEvent) => {
-    if (!state) return;
-    const dims = TableMap.get(state.block);
+    const current = stateRef.current;
+    if (!current) return;
+    const dims = TableMap.get(current.block);
     movedRef.current = false;
+    draggingRef.current = true;
     setDragState({
       startPos: isRow ? event.clientY : event.clientX,
       originalHeight: dims.height,
       originalWidth: dims.width
     });
+    document.documentElement.style.cursor = isRow ? 'row-resize' : 'col-resize';
     onMouseDown();
     event.preventDefault();
   };
 
   const handleClick = () => {
-    if (movedRef.current || !state) return;
+    const current = stateRef.current;
+    if (movedRef.current || !current) return;
     runPreservingCursor(editor, () => {
-      selectLastCell(editor, state.block, state.blockPos, orientation);
+      selectLastCell(editor, current.block, current.blockPos, orientation);
       if (isRow) editor.commands.addRowAfter();
       else editor.commands.addColumnAfter();
     });
   };
 
   useEffect(() => {
-    if (!dragState || !state) return;
+    if (!dragState) return;
+
     const handleMove = (event: MouseEvent) => {
+      const current = stateRef.current;
+      if (!current) return;
       movedRef.current = true;
       const currentPos = isRow ? event.clientY : event.clientX;
       const cellSize = isRow ? EMPTY_CELL_HEIGHT : EMPTY_CELL_WIDTH;
-      const currentDims = TableMap.get(state.block);
+      const currentDims = TableMap.get(current.block);
       const currentCount = isRow ? currentDims.height : currentDims.width;
       const originalCount = isRow ? dragState.originalHeight : dragState.originalWidth;
       const newCount = Math.max(
@@ -71,7 +91,7 @@ const ExtendButton: React.FC<{
       if (delta === 0) return;
       if (delta > 0) {
         runPreservingCursor(editor, () => {
-          selectLastCell(editor, state.block, state.blockPos, orientation);
+          selectLastCell(editor, current.block, current.blockPos, orientation);
           for (let i = 0; i < delta; i += 1) {
             if (isRow) editor.commands.addRowAfter();
             else editor.commands.addColumnAfter();
@@ -80,10 +100,10 @@ const ExtendButton: React.FC<{
       } else {
         runPreservingCursor(editor, () => {
           const emptyCount = isRow
-            ? countEmptyRowsFromEnd(editor, state.blockPos)
-            : countEmptyColumnsFromEnd(editor, state.blockPos);
+            ? countEmptyRowsFromEnd(editor, current.blockPos)
+            : countEmptyColumnsFromEnd(editor, current.blockPos);
           const safeToRemove = Math.min(Math.abs(delta), emptyCount, currentCount - 1);
-          selectLastCell(editor, state.block, state.blockPos, orientation);
+          selectLastCell(editor, current.block, current.blockPos, orientation);
           for (let i = 0; i < safeToRemove; i += 1) {
             if (isRow) editor.commands.deleteRow();
             else editor.commands.deleteColumn();
@@ -91,17 +111,21 @@ const ExtendButton: React.FC<{
         });
       }
     };
-    const handleUp = () => {
-      setDragState(null);
-      onMouseUp();
-    };
+
     window.addEventListener('mousemove', handleMove);
-    window.addEventListener('mouseup', handleUp);
+    window.addEventListener('pointerup', finishDrag);
+    window.addEventListener('pointercancel', finishDrag);
     return () => {
       window.removeEventListener('mousemove', handleMove);
-      window.removeEventListener('mouseup', handleUp);
+      window.removeEventListener('pointerup', finishDrag);
+      window.removeEventListener('pointercancel', finishDrag);
+      if (draggingRef.current) {
+        draggingRef.current = false;
+        document.documentElement.style.removeProperty('cursor');
+        onMouseUp();
+      }
     };
-  }, [dragState, editor, isRow, onMouseUp, orientation, state]);
+  }, [dragState, editor, finishDrag, isRow, onMouseUp, orientation]);
 
   if (!editor.isEditable) return null;
 

@@ -48,6 +48,13 @@ function hideElements(selector: string, rootEl: Document | ShadowRoot) {
   });
 }
 
+const TABLE_CHROME_SELECTOR =
+  '.atiptap-notion-table-handle, .atiptap-notion-table-extend, .atiptap-notion-drag-menu, .atiptap-notion-table-overlay, .atiptap-notion-table-cellmenu';
+
+function isTableChromeElement(target: EventTarget | null): boolean {
+  return target instanceof Element && Boolean(target.closest(TABLE_CHROME_SELECTOR));
+}
+
 export const tableHandlePluginKey = new PluginKey('tableHandlePlugin');
 
 class TableHandleView implements PluginView {
@@ -73,9 +80,10 @@ class TableHandleView implements PluginView {
     this.editorView = editorView;
     this.emitUpdate = () => this.state && emitUpdate(this.state);
 
-    this.editorView.dom.addEventListener('mousemove', this.mouseMoveHandler);
     this.editorView.dom.addEventListener('mousedown', this.viewMousedownHandler);
+    window.addEventListener('mousemove', this.mouseMoveHandler);
     window.addEventListener('mouseup', this.mouseUpHandler);
+    window.addEventListener('dragend', this.dragEndHandler);
 
     this.editorView.root.addEventListener('dragover', this.dragOverHandler as EventListener);
     this.editorView.root.addEventListener('drop', this.dropHandler as unknown as EventListener);
@@ -136,9 +144,36 @@ class TableHandleView implements PluginView {
     if (this.menuFrozen || this.mouseState === 'selecting') return;
 
     const target = event.target;
-    if (!isHTMLElement(target) || !this.editorView.dom.contains(target)) return;
+    if (isTableChromeElement(target)) {
+      return;
+    }
+    if (!(target instanceof Element) || !this.editorView.dom.contains(target)) {
+      this.hideHandles();
+      return;
+    }
 
     this._handleMouseMoveNow(event);
+  };
+
+  clearDraggingState() {
+    this.mouseState = 'up';
+    if (!this.state?.draggingState) {
+      return;
+    }
+
+    this.state = {
+      ...this.state,
+      draggingState: undefined
+    };
+    this.emitUpdate();
+    this.editor.view.dispatch(this.editor.state.tr.setMeta(tableHandlePluginKey, null));
+  }
+
+  private dragEndHandler = () => {
+    if (!this.state?.draggingState) {
+      return;
+    }
+    this.clearDraggingState();
   };
 
   private hideHandles() {
@@ -356,15 +391,13 @@ class TableHandleView implements PluginView {
     if (!st?.draggingState) return false;
 
     const { draggingState, rowIndex, colIndex, blockPos } = st;
-    if (!isValidPosition(blockPos)) return false;
-
     if (
+      !isValidPosition(blockPos) ||
       (draggingState.draggedCellOrientation === 'row' && rowIndex === undefined) ||
       (draggingState.draggedCellOrientation === 'col' && colIndex === undefined)
     ) {
-      throw new Error(
-        'Attempted to drop table row or column, but no table block was hovered prior.'
-      );
+      this.clearDraggingState();
+      return false;
     }
 
     const isRow = draggingState.draggedCellOrientation === 'row';
@@ -377,12 +410,18 @@ class TableHandleView implements PluginView {
       orientation,
       tablePos: blockPos
     });
-    if (!cellCoords) return false;
+    if (!cellCoords) {
+      this.clearDraggingState();
+      return false;
+    }
 
     const stateWithCellSel = selectCellsByCoords(this.editor, blockPos, cellCoords, {
       mode: 'state'
     });
-    if (!stateWithCellSel) return false;
+    if (!stateWithCellSel) {
+      this.clearDraggingState();
+      return false;
+    }
 
     const dispatch = (tr: Transaction) => this.editor.view.dispatch(tr);
 
@@ -402,11 +441,7 @@ class TableHandleView implements PluginView {
       })(stateWithCellSel, dispatch);
     }
 
-    this.state = { ...st, draggingState: undefined };
-    this.emitUpdate();
-
-    this.editor.view.dispatch(this.editor.state.tr.setMeta(tableHandlePluginKey, null));
-
+    this.clearDraggingState();
     return true;
   };
 
@@ -502,12 +537,13 @@ class TableHandleView implements PluginView {
   }
 
   destroy(): void {
-    this.editorView.dom.removeEventListener('mousemove', this.mouseMoveHandler as EventListener);
-    window.removeEventListener('mouseup', this.mouseUpHandler as EventListener);
     this.editorView.dom.removeEventListener(
       'mousedown',
       this.viewMousedownHandler as EventListener
     );
+    window.removeEventListener('mousemove', this.mouseMoveHandler as EventListener);
+    window.removeEventListener('mouseup', this.mouseUpHandler as EventListener);
+    window.removeEventListener('dragend', this.dragEndHandler);
     this.editorView.root.removeEventListener('dragover', this.dragOverHandler as EventListener);
     this.editorView.root.removeEventListener('drop', this.dropHandler as unknown as EventListener);
     this.detachScroll?.();
@@ -768,16 +804,5 @@ export const rowDragStart = (event: {
  * Drag end cleanup
  */
 export const dragEnd = () => {
-  if (!tableHandleView || tableHandleView.state === undefined) {
-    return;
-  }
-
-  tableHandleView.state = {
-    ...tableHandleView.state,
-    draggingState: undefined
-  };
-  tableHandleView.emitUpdate();
-
-  const editor = tableHandleView.editor;
-  editor.view.dispatch(editor.state.tr.setMeta(tableHandlePluginKey, null));
+  tableHandleView?.clearDraggingState();
 };

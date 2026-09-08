@@ -16,6 +16,7 @@ import { StarterKit } from '../starter-kit';
 import { BlockDragHandle, type BlockIcon, type BlockMenuExtraContext } from './BlockDragHandle';
 import { DocumentOutline, type OutlineMode } from './DocumentOutline';
 import { FloatingToolbar } from './FloatingToolbar';
+import { MediaBlockChrome } from './MediaBlockChrome';
 import { NotionToolbar } from './NotionToolbar';
 import { duplicateNode, moveBlock, setEditorMeta } from './block-actions';
 import {
@@ -40,15 +41,7 @@ import { MentionNode, NotionMentionMenu } from './mention';
 import type { MentionItemsResolver } from './mention';
 import { NotionSlashMenu } from './slash/SlashSuggestionMenu';
 import type { SlashSuggestionItem } from './slash/slash-types';
-import {
-  NotionTableKit,
-  TableCellAttrs,
-  TableCellMenu,
-  TableExtendButtons,
-  TableHandle,
-  TableHandleExtension,
-  TableSelectionOverlay
-} from './table';
+import { NotionTableKit, TableCellAttrs, TableHandleExtension } from './table';
 
 export type { BlockIcon, BlockMenuExtraContext };
 /** 点击编辑器底部空白时，把光标落到末尾可编辑块 */
@@ -346,7 +339,7 @@ export const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
       ],
       editorProps: {
         attributes: {
-          class: 'atiptap-notion-prosemirror',
+          class: 'atiptap-notion-prosemirror markdown-body',
           spellcheck: 'false'
         },
         handleClick: (view, _pos, event) => focusTrailingBlockOnEmptyClick(view, event)
@@ -452,9 +445,7 @@ export const NotionLikeEditor: React.FC<NotionLikeEditorProps> = ({
                     blockMenuExtra={blockMenuExtra}
                   />
                   <FloatingToolbar editor={editor} />
-                  <TableHandle editor={editor} />
-                  <TableExtendButtons editor={editor} />
-                  <TableSelectionOverlay editor={editor} cellMenu={TableCellMenu} />
+                  <MediaBlockChrome editor={editor} />
                   <NotionSlashMenu editor={editor} slashItems={slashItems} />
                   <NotionMentionMenu editor={editor} mentionItems={mentionItems} />
                 </>

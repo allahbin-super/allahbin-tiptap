@@ -3,6 +3,7 @@ export type { BlockDragHandleProps, BlockIcon, BlockMenuExtraContext } from './B
 export { DocumentOutline } from './DocumentOutline';
 export type { OutlineHeading, OutlineMode } from './DocumentOutline';
 export { FloatingToolbar } from './FloatingToolbar';
+export { ImageBubbleMenu, MediaBlockChrome } from './MediaBlockChrome';
 export { NotionLikeEditor, default } from './NotionLikeEditor';
 export type { NotionContentMode, NotionCssVars, NotionLikeEditorProps } from './NotionLikeEditor';
 export { SearchReplacePanel } from './SearchReplacePanel';

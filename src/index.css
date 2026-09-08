@@ -1,3 +1,5 @@
+@import './github-markdown-light.css';
+
 /* 模仿 Ant Design 5 默认主题（公文编辑器未接入 antd，仅对齐 token） */
 .atiptap-editor,
 .atiptap-dropdown-menu,
@@ -5,6 +7,7 @@
   --atiptap-color-primary: #1677ff;
   --atiptap-color-primary-hover: #4096ff;
   --atiptap-color-primary-bg: #e6f4ff;
+  --atiptap-color-primary-border: #91caff;
   --atiptap-color-text: rgba(0, 0, 0, 0.88);
   --atiptap-color-text-secondary: rgba(0, 0, 0, 0.65);
   --atiptap-color-text-tertiary: rgba(0, 0, 0, 0.45);
@@ -57,8 +60,26 @@
   box-sizing: border-box;
   min-height: 100%;
   outline: none;
-  padding: 12px 16px;
+  padding: 16px 20px;
   font-size: 12pt;
+}
+
+/* github-markdown-light.css 挂在 ProseMirror 上：只要块级样式，不要改编辑器底色/字号 */
+.atiptap-content .ProseMirror.markdown-body,
+.atiptap-notion .ProseMirror.markdown-body {
+  color: inherit;
+  background-color: transparent;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.atiptap-content .ProseMirror.markdown-body::before,
+.atiptap-content .ProseMirror.markdown-body::after,
+.atiptap-notion .ProseMirror.markdown-body::before,
+.atiptap-notion .ProseMirror.markdown-body::after {
+  display: none;
+  content: none;
 }
 
 /* 简易模式：height 作用在输入区，避免工具栏把内容区挤没 */
@@ -91,10 +112,6 @@
   width: 100% !important;
   height: 100% !important;
   background: #fff;
-}
-
-.atiptap-content .ProseMirror table {
-  width: 100% !important;
 }
 
 .atiptap-content img {
@@ -134,7 +151,14 @@
 /* 取消特定元素的缩进 */
 .atiptap-content .ProseMirror li p,
 .atiptap-content .ProseMirror li label,
-.atiptap-content .ProseMirror hr {
+.atiptap-content .ProseMirror hr,
+.atiptap-content .ProseMirror blockquote,
+.atiptap-content .ProseMirror pre,
+.atiptap-content .ProseMirror code,
+.atiptap-content .ProseMirror th,
+.atiptap-content .ProseMirror td,
+.atiptap-content .ProseMirror ul[data-type='taskList'],
+.atiptap-content .ProseMirror [data-content-type='table'] {
   text-indent: 0;
 }
 
@@ -224,78 +248,57 @@
   text-indent: 2em;
 }
 
-.atiptap_main_gov .atiptap-content .ProseMirror .tableWrapper .scrollWrapper {
-  padding: 28px 4em 4px;
-}
-
-.atiptap_main_gov .atiptap-content .ProseMirror .node-codeBlock,
 .atiptap_main_gov .atiptap-content .ProseMirror ul,
 .atiptap_main_gov .atiptap-content .ProseMirror ol {
   padding: 0 2em;
 }
 
-/* === Normal 模式(GitHub 文章风格) === */
-.atiptap_main_normal .atiptap-content .ProseMirror {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans',
-    Helvetica, Arial, sans-serif;
-  font-size: 14px;
-  line-height: 1.6;
-  color: #24292f;
-  background-color: #fff;
-  text-indent: 0; /* 覆盖缩进设置 */
+.atiptap_main_gov .atiptap-content .ProseMirror ul[data-type='taskList'] {
+  padding-left: 0;
 }
 
-/* Normal 模式标题共性 */
-.atiptap_main_normal .atiptap-content .ProseMirror h1,
-.atiptap_main_normal .atiptap-content .ProseMirror h2,
-.atiptap_main_normal .atiptap-content .ProseMirror h3 {
-  font-weight: bold;
-  margin: 24px 0 16px;
-  text-indent: 0; /* 覆盖缩进设置 */
+.atiptap_main_gov .atiptap-content .ProseMirror pre,
+.atiptap_main_gov .atiptap-content .ProseMirror code {
+  text-indent: 0;
 }
 
-/* Normal 模式边框标题 */
-.atiptap_main_normal .atiptap-content .ProseMirror h1,
-.atiptap_main_normal .atiptap-content .ProseMirror h2 {
-  border-bottom: 1px solid #eaecef;
-  padding-bottom: 0.3em;
+/* === Normal / Custom：正文交给 github-markdown-light.css，这里只关公文缩进 === */
+.atiptap_main_normal .atiptap-content .ProseMirror,
+.atiptap_main_custom .atiptap-content .ProseMirror {
+  text-indent: 0;
 }
 
-/* Normal 模式 H1 标题 */
-.atiptap_main_normal .atiptap-content .ProseMirror h1 {
-  font-size: 2em;
+/* 公文 / 普通 / 自定义：块间距留出手柄热区 */
+.atiptap_main_gov .atiptap-content .ProseMirror p,
+.atiptap_main_gov .atiptap-content .ProseMirror pre,
+.atiptap_main_gov .atiptap-content .ProseMirror blockquote,
+.atiptap_main_gov .atiptap-content .ProseMirror ul,
+.atiptap_main_gov .atiptap-content .ProseMirror ol,
+.atiptap_main_gov .atiptap-content .ProseMirror hr,
+.atiptap_main_normal .atiptap-content .ProseMirror p,
+.atiptap_main_normal .atiptap-content .ProseMirror pre,
+.atiptap_main_normal .atiptap-content .ProseMirror blockquote,
+.atiptap_main_normal .atiptap-content .ProseMirror ul,
+.atiptap_main_normal .atiptap-content .ProseMirror ol,
+.atiptap_main_normal .atiptap-content .ProseMirror hr,
+.atiptap_main_custom .atiptap-content .ProseMirror p,
+.atiptap_main_custom .atiptap-content .ProseMirror pre,
+.atiptap_main_custom .atiptap-content .ProseMirror blockquote,
+.atiptap_main_custom .atiptap-content .ProseMirror ul,
+.atiptap_main_custom .atiptap-content .ProseMirror ol,
+.atiptap_main_custom .atiptap-content .ProseMirror hr {
+  margin-top: 0;
+  margin-bottom: 20px;
 }
 
-/* Normal 模式 H2 标题 */
-.atiptap_main_normal .atiptap-content .ProseMirror h2 {
-  font-size: 1.5em;
-}
-
-/* Normal 模式 H3 标题 */
-.atiptap_main_normal .atiptap-content .ProseMirror h3 {
-  font-size: 1.25em;
-}
-
-/* Normal 模式的代码块 */
-.atiptap_main_normal .atiptap-content .ProseMirror pre {
-  background-color: #f6f8fa;
-  padding: 16px;
-  border-radius: 6px;
-  overflow-x: auto;
-  font-size: 85%;
-  line-height: 1.45;
-  font-family: SFMono-Regular, Consolas, 'Liberation Mono', Menlo, Courier,
-    monospace;
-}
-
-/* Normal 模式超链接 */
-.atiptap_main_normal .atiptap-content .ProseMirror a {
-  color: #0969da;
-  text-decoration: none;
-}
-
-.atiptap_main_normal .atiptap-content .ProseMirror a:hover {
-  text-decoration: underline;
+.atiptap_main_gov .atiptap-content .ProseMirror .atiptap-notion-image,
+.atiptap_main_normal .atiptap-content .ProseMirror .atiptap-notion-image,
+.atiptap_main_custom .atiptap-content .ProseMirror .atiptap-notion-image,
+.atiptap_main_gov .atiptap-content .ProseMirror .atiptap-notion-file-node,
+.atiptap_main_normal .atiptap-content .ProseMirror .atiptap-notion-file-node,
+.atiptap_main_custom .atiptap-content .ProseMirror .atiptap-notion-file-node {
+  margin-top: 0;
+  margin-bottom: 20px;
 }
 
 /* === Custom 模式（预留） === */

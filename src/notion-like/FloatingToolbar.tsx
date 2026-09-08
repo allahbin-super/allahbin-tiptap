@@ -7,27 +7,14 @@ import {
   AlignLeft,
   AlignRight,
   Bold,
-  Captions,
   Code,
-  Download,
   Highlighter,
-  ImagePlus,
   Italic,
   Strikethrough,
-  Trash2,
   Underline
 } from 'lucide-react';
 import React, { useState } from 'react';
 import { LinkPopover } from '../ui/LinkPopover';
-import {
-  deleteSelectedImage,
-  downloadSelectedImage,
-  isImageSelected,
-  replaceSelectedImage,
-  setImageAlign,
-  showImageCaption,
-  type ImageAlign
-} from './image';
 import { useNotionThemeClassName, useNotionThemeStyle } from './notion-theme';
 
 const HIGHLIGHT_COLORS = [
@@ -60,7 +47,7 @@ const ToolbarDivider = () => <span className="atiptap-notion-bubble__divider" />
 
 const isDragMenuOpen = () => Boolean(document.querySelector('.atiptap-notion-drag-menu'));
 
-/** 划词后出现的浮动格式栏；选中图片时切换为图片操作栏 */
+/** 划词后出现的浮动格式栏 */
 export const FloatingToolbar: React.FC<{ editor: Editor | null }> = ({ editor }) => {
   const [highlightOpen, setHighlightOpen] = useState(false);
   const bubbleClassName = useNotionThemeClassName('atiptap-notion-bubble');
@@ -71,11 +58,6 @@ export const FloatingToolbar: React.FC<{ editor: Editor | null }> = ({ editor })
       if (!ctx.editor) {
         return null;
       }
-      const { selection } = ctx.editor.state;
-      const imageNode =
-        selection instanceof NodeSelection && selection.node.type.name === 'image'
-          ? selection.node
-          : null;
       return {
         bold: ctx.editor.isActive('bold'),
         italic: ctx.editor.isActive('italic'),
@@ -85,9 +67,7 @@ export const FloatingToolbar: React.FC<{ editor: Editor | null }> = ({ editor })
         highlight: ctx.editor.isActive('highlight'),
         alignLeft: ctx.editor.isActive({ textAlign: 'left' }),
         alignCenter: ctx.editor.isActive({ textAlign: 'center' }),
-        alignRight: ctx.editor.isActive({ textAlign: 'right' }),
-        imageAlign: (imageNode?.attrs['data-align'] as ImageAlign | null) || 'center',
-        imageCaption: Boolean(imageNode?.attrs.showCaption)
+        alignRight: ctx.editor.isActive({ textAlign: 'right' })
       };
     }
   });
@@ -217,71 +197,6 @@ export const FloatingToolbar: React.FC<{ editor: Editor | null }> = ({ editor })
           onClick={() => editor.chain().focus().setTextAlign('right').run()}
         >
           <AlignRight size={16} />
-        </ToolbarButton>
-      </BubbleMenu>
-      <BubbleMenu
-        editor={editor}
-        className={bubbleClassName}
-        style={bubbleStyle}
-        options={{ placement: 'top', offset: 8 }}
-        shouldShow={({
-          editor: currentEditor,
-          state
-        }: {
-          editor: Editor;
-          state: Editor['state'];
-        }) => {
-          if (!(state.selection instanceof NodeSelection)) {
-            return false;
-          }
-          if (isDragMenuOpen()) {
-            return false;
-          }
-          return currentEditor.isEditable && isImageSelected(currentEditor);
-        }}
-      >
-        <ToolbarButton
-          title="左对齐"
-          active={marks.imageAlign === 'left'}
-          onClick={() => setImageAlign(editor, 'left')}
-        >
-          <AlignLeft size={16} />
-        </ToolbarButton>
-        <ToolbarButton
-          title="居中"
-          active={marks.imageAlign === 'center'}
-          onClick={() => setImageAlign(editor, 'center')}
-        >
-          <AlignCenter size={16} />
-        </ToolbarButton>
-        <ToolbarButton
-          title="右对齐"
-          active={marks.imageAlign === 'right'}
-          onClick={() => setImageAlign(editor, 'right')}
-        >
-          <AlignRight size={16} />
-        </ToolbarButton>
-        <ToolbarDivider />
-        <ToolbarButton
-          title="图注"
-          active={marks.imageCaption}
-          onClick={() => showImageCaption(editor)}
-        >
-          <Captions size={16} />
-        </ToolbarButton>
-        <ToolbarButton title="替换" onClick={() => replaceSelectedImage(editor)}>
-          <ImagePlus size={16} />
-        </ToolbarButton>
-        <ToolbarButton
-          title="下载"
-          onClick={() => {
-            void downloadSelectedImage(editor);
-          }}
-        >
-          <Download size={16} />
-        </ToolbarButton>
-        <ToolbarButton title="删除" onClick={() => deleteSelectedImage(editor)}>
-          <Trash2 size={16} />
         </ToolbarButton>
       </BubbleMenu>
     </>

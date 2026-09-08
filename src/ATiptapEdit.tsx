@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
+import 'highlight.js/styles/github.css';
 import './index.css';
-
-import 'highlight.js/styles/default.css';
+import './notion-like/notion-like.css';
 import { ATail } from './extensions/ATail';
 import { ATitle } from './extensions/ATitle';
 import { AWenHao } from './extensions/AWenHao';
@@ -12,9 +12,19 @@ import { EditorProps } from '@tiptap/pm/view';
 import type { Editor } from '@tiptap/react';
 import { ALink } from './a-link';
 import { EditorRender, EditorRenderProps, useEditor } from './editor';
-import { createImageUploadExtensions } from './image-upload';
-import { MentionNode, NotionMentionMenu } from './notion-like';
+import { createMediaUploadExtensions } from './image-upload';
 import type { FileNodeInfo, FileRenderers, MentionItemsResolver } from './notion-like';
+import {
+  FileNode,
+  FileUploadNode,
+  ImageUploadNode,
+  MentionNode,
+  NotionImage,
+  NotionMentionMenu,
+  NotionTableKit,
+  TableCellAttrs,
+  TableHandleExtension
+} from './notion-like';
 
 export type UploaderFunc = (
   file: File,
@@ -117,11 +127,11 @@ export type IATiptapProps = Omit<EditorRenderProps, 'editor'> & {
   parseOptions?: ParseOptions;
   editable?: boolean;
   imageUploader?: UploaderFunc;
-  /** Notion 模式：非图片文件上传，返回 URL */
+  /** 非图片文件上传，返回 URL；公文编辑器和 Notion 块编辑器共用 */
   fileUploader?: UploaderFunc;
-  /** Notion 模式：文件块自定义渲染 */
+  /** 文件块自定义渲染 */
   fileRenderers?: FileRenderers;
-  /** Notion 模式：文件块点击 */
+  /** 文件块点击 */
   onFileClick?: (info: FileNodeInfo, event: React.MouseEvent) => void;
   starterKitOpt?: StarterKitOptions;
   /**
@@ -208,6 +218,9 @@ const ATiptapEdit: React.FC<IATiptapProps> = ({
   renderMode = simple ? 'normal' : 'gov',
   simpleConfigure: userSimpleConfigure,
   imageUploader,
+  fileUploader,
+  fileRenderers,
+  onFileClick,
   mentionItems,
   ...props
 }) => {
@@ -240,12 +253,14 @@ const ATiptapEdit: React.FC<IATiptapProps> = ({
     ...starterKitOpt
   };
   const imageEnabled = starterKitOptions.image !== false;
+  const tableEnabled = starterKitOptions.table !== false;
+  const fileEnabled = !simple;
   const govBlocksEnabled = !simple && renderMode === 'gov';
   const hasMention = !!mentionItems;
 
   useEffect(() => {
     setIsReady(false);
-  }, [govBlocksEnabled, simple, hasMention]);
+  }, [govBlocksEnabled, simple, hasMention, imageEnabled, tableEnabled, fileEnabled]);
 
   const editor = useEditor(
     {
@@ -254,8 +269,27 @@ const ATiptapEdit: React.FC<IATiptapProps> = ({
         ...(simple ? [] : [ATitle]),
         ...(govBlocksEnabled ? [ATail, AWenHao] : []),
         ALink,
-        StarterKit.configure(starterKitOptions),
-        ...(imageEnabled ? createImageUploadExtensions(imageUploader) : []),
+        StarterKit.configure({
+          ...starterKitOptions,
+          image: false,
+          table: false
+        }),
+        ...(imageEnabled
+          ? [
+              NotionImage.configure({
+                allowBase64: true
+              }),
+              ImageUploadNode
+            ]
+          : []),
+        ...(fileEnabled ? [FileNode, FileUploadNode] : []),
+        ...(tableEnabled ? [NotionTableKit, TableHandleExtension, TableCellAttrs] : []),
+        ...(imageEnabled || fileEnabled
+          ? createMediaUploadExtensions({
+              imageUploader: imageEnabled ? imageUploader : undefined,
+              fileUploader: fileEnabled ? fileUploader : undefined
+            })
+          : []),
         ...(hasMention ? [MentionNode] : [])
       ],
       onChange: (doc, editorNow) => {
@@ -287,14 +321,17 @@ const ATiptapEdit: React.FC<IATiptapProps> = ({
         setIsReady(true);
       }
     },
-    [govBlocksEnabled, simple, hasMention]
+    [govBlocksEnabled, simple, hasMention, imageEnabled, tableEnabled, fileEnabled]
   );
 
   useEffect(() => {
     if (editor?.storage.imageUploader) {
-      editor.storage.imageUploader.upload = imageUploader;
+      editor.storage.imageUploader.upload = imageUploader || fileUploader;
     }
-  }, [editor, imageUploader]);
+    if (editor?.storage.fileUploader) {
+      editor.storage.fileUploader.upload = fileUploader;
+    }
+  }, [editor, imageUploader, fileUploader]);
 
   useEffect(() => {
     if (editor) {
@@ -340,6 +377,9 @@ const ATiptapEdit: React.FC<IATiptapProps> = ({
           ...style
         }}
         showGovBlocks={govBlocksEnabled}
+        fileUploader={fileUploader}
+        fileRenderers={fileRenderers}
+        onFileClick={onFileClick}
         onFullscreenChange={() => {
           setEditorHeight('100%');
         }}

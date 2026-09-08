@@ -7,6 +7,25 @@ import type { Transaction } from '@tiptap/pm/state';
 import React from 'react';
 import { mdTailToHtml, mdTitleToHtml, mdWenhaoToHtml } from '../markdown';
 
+type EditorAttributes = NonNullable<NonNullable<EditorOptions['editorProps']>['attributes']>;
+
+function mergeEditorAttributes(attributes: EditorAttributes | undefined): EditorAttributes {
+  const withMarkdownClass = (resolved: Record<string, string>) => {
+    const className = ['markdown-body', resolved.class].filter(Boolean).join(' ');
+    return {
+      spellCheck: 'false',
+      ...resolved,
+      class: className
+    };
+  };
+
+  if (typeof attributes === 'function') {
+    return (state) => withMarkdownClass(attributes(state) || {});
+  }
+
+  return withMarkdownClass(attributes || {});
+}
+
 export interface EditorEvents {
   beforeCreate: { editor: ATiptapEditor };
   create: { editor: ATiptapEditor };
@@ -80,10 +99,8 @@ export class ATiptapEditor extends Editor {
       extensions: [Document, Paragraph, Text],
       ...originalEditorOptions,
       editorProps: {
-        attributes: {
-          spellCheck: 'false'
-        },
-        ...(customEditorProps || {})
+        ...(customEditorProps || {}),
+        attributes: mergeEditorAttributes(customEditorProps?.attributes)
       },
       // @ts-ignore
       onCreate: (props: EditorEvents['create']) => {

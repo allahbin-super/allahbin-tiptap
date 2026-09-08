@@ -8,6 +8,7 @@ import type { Node } from '@tiptap/pm/model';
 import { TextSelection } from '@tiptap/pm/state';
 import { cellAround, columnResizing, tableEditing, TableView } from '@tiptap/pm/tables';
 import type { ViewMutationRecord } from '@tiptap/pm/view';
+import { columnResizeCursorFix } from './table-resize-cursor-fix';
 import { EMPTY_CELL_WIDTH, RESIZE_MIN_WIDTH } from './tiptap-table-utils';
 
 const TableNode = Table.extend<TableOptions>({
@@ -33,7 +34,8 @@ const TableNode = Table.extend<TableOptions>({
               defaultCellMinWidth,
               View: null,
               lastColumnResizable: this.options.lastColumnResizable
-            })
+            }),
+            columnResizeCursorFix()
           ]
         : []),
       tableEditing({

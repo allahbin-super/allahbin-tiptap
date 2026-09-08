@@ -657,7 +657,7 @@ class TiptapRender {
     return (
       <div className={`atiptap_main_${this.config.renderMode}`}>
         <div className="atiptap-content">
-          <div className="tiptap ProseMirror">
+          <div className="tiptap ProseMirror markdown-body">
             {this.json.content.map((item, index) => this.renderType(item, index))}
           </div>
         </div>

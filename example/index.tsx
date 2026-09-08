@@ -1,18 +1,22 @@
 import { Button, Input, Select, Space, Typography } from 'antd';
 import React, { useState } from 'react';
-import AEditorRender, { type IATiptapProps } from '../src';
+import AEditorRender, { mockFileUploader, mockImgUploader, type IATiptapProps } from '../src';
 
-const SAMPLE_HTML = '<p>123</p>';
+const SAMPLE_IMG = `data:image/svg+xml,${encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" width="240" height="120"><rect width="100%" height="100%" fill="#1677ff"/><text x="50%" y="54%" fill="white" font-size="16" font-family="sans-serif" text-anchor="middle">图片块</text></svg>'
+)}`;
+
+const SAMPLE_HTML = `<p>示例正文。表格、图片与块编辑器使用同一套节点。</p><blockquote><p>引用保持 GitHub 风格：灰色左边框。</p></blockquote><pre><code>const hello = 'world';</code></pre><table><tbody><tr><th><p>项目</p></th><th><p>说明</p></th></tr><tr><td><p>表格</p></td><td><p>单元格边框、表头底与行列手柄</p></td></tr></tbody></table><img src="${SAMPLE_IMG}" alt="示例图" />`;
 const SAMPLE_MD = '! 你好';
 const SAMPLE_JSON =
   '{"type":"doc","content":[{"type":"paragraph","attrs":{"textAlign":"left","indent":0},"content":[{"type":"text","text":"阿萨达阿萨大大咋打打算111"},{"type":"text","marks":[{"type":"link","attrs":{"href":"阿萨大大","target":"_blank","data-id":123131321}}],"text":"阿萨大大"}]}]}';
 
 export default () => {
-  const [value, setValue] = useState<any>();
+  const [value, setValue] = useState<any>(SAMPLE_HTML);
   const [mode, setMode] = useState<IATiptapProps['mode']>('html');
   const [mdValue, setMdValue] = useState<string>();
   const [jsonValue, setJsonValue] = useState<any>();
-  const [htmlValue, setHtmlValue] = useState<string>();
+  const [htmlValue, setHtmlValue] = useState<string>(SAMPLE_HTML);
   const [editable, setEditable] = useState<boolean>(true);
   const [bordered, setBordered] = useState<boolean>(true);
   const [renderMode, setRenderMode] = useState<IATiptapProps['renderMode']>('gov');
@@ -114,6 +118,8 @@ export default () => {
         onChange={onChange}
         editable={editable}
         bordered={bordered}
+        imageUploader={mockImgUploader}
+        fileUploader={mockFileUploader}
       />
       <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 16 }}>
         <div>

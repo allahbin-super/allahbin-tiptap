@@ -1,3 +1,5 @@
+@import '../github-markdown-light.css';
+
 /* 默认 token 放在 :where(:root)，特异度为 0，业务 :root / .atiptap-theme 均可覆盖 */
 :where(:root) {
   --atiptap-color-primary: #1677ff;
@@ -505,6 +507,20 @@
   white-space: pre-wrap;
 }
 
+.atiptap-notion .ProseMirror.markdown-body {
+  color: inherit;
+  background-color: transparent;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.atiptap-notion .ProseMirror.markdown-body::before,
+.atiptap-notion .ProseMirror.markdown-body::after {
+  display: none;
+  content: none;
+}
+
 .atiptap-notion .ProseMirror > * {
   position: relative;
 }
@@ -562,18 +578,20 @@
   margin-block-end: 0.2em;
 }
 
-.atiptap-notion .ProseMirror ul[data-type='taskList'] {
+:is(.atiptap-notion, .atiptap-content) .ProseMirror ul[data-type='taskList'] {
   list-style: none;
   padding-left: 0;
+  text-indent: 0;
 }
 
-.atiptap-notion .ProseMirror ul[data-type='taskList'] li {
+:is(.atiptap-notion, .atiptap-content) .ProseMirror ul[data-type='taskList'] li {
   display: flex;
   align-items: flex-start;
   gap: 8px;
+  text-indent: 0;
 }
 
-.atiptap-notion .ProseMirror ul[data-type='taskList'] li > label {
+:is(.atiptap-notion, .atiptap-content) .ProseMirror ul[data-type='taskList'] li > label {
   display: flex;
   flex: 0 0 auto;
   align-items: center;
@@ -584,7 +602,7 @@
   user-select: none;
 }
 
-.atiptap-notion .ProseMirror ul[data-type='taskList'] li input[type='checkbox'] {
+:is(.atiptap-notion, .atiptap-content) .ProseMirror ul[data-type='taskList'] li input[type='checkbox'] {
   width: 16px;
   height: 16px;
   margin: 0;
@@ -592,47 +610,22 @@
   cursor: pointer;
 }
 
-.atiptap-notion .ProseMirror ul[data-type='taskList'] li > div {
+:is(.atiptap-notion, .atiptap-content) .ProseMirror ul[data-type='taskList'] li > div {
   flex: 1 1 auto;
   min-width: 0;
 }
 
-.atiptap-notion .ProseMirror blockquote {
-  margin: 8px 0;
-  padding: 4px 0 4px 12px;
-  border-left: 3px solid var(--atiptap-color-primary-border);
-  color: var(--atiptap-color-text-secondary);
+:is(.atiptap-notion, .atiptap-content) .ProseMirror blockquote,
+:is(.atiptap-notion, .atiptap-content) .ProseMirror pre,
+:is(.atiptap-notion, .atiptap-content) .ProseMirror code {
+  text-indent: 0;
 }
 
-.atiptap-notion .ProseMirror hr {
+:is(.atiptap-notion, .atiptap-content) .ProseMirror hr {
   border: none;
   border-top: 1px solid var(--atiptap-color-split);
   margin: 18px 0;
-}
-
-.atiptap-notion .ProseMirror code {
-  background: var(--atiptap-color-bg-layout);
-  border: 1px solid var(--atiptap-color-border-secondary);
-  border-radius: var(--atiptap-border-radius-sm);
-  padding: 0.1em 0.4em;
-  font-size: 0.9em;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-}
-
-.atiptap-notion .ProseMirror pre {
-  background: var(--atiptap-color-bg-spotlight);
-  border: 1px solid var(--atiptap-color-border-secondary);
-  border-radius: var(--atiptap-border-radius);
-  padding: 12px 16px;
-  overflow-x: auto;
-  font-size: 13px;
-  line-height: 1.5714285714285714;
-}
-
-.atiptap-notion .ProseMirror pre code {
-  background: transparent;
-  border: none;
-  padding: 0;
+  text-indent: 0;
 }
 
 .atiptap-notion .ProseMirror a {
@@ -646,45 +639,87 @@
   color: var(--atiptap-color-primary-hover);
 }
 
-.atiptap-notion .ProseMirror table {
+:is(.atiptap-notion, .atiptap-content) .ProseMirror table {
+  display: table;
   border-collapse: collapse;
   table-layout: fixed;
   width: auto;
-  margin: 8px 0;
   overflow: hidden;
 }
 
-.atiptap-notion .ProseMirror .tableWrapper {
-  overflow: visible;
+.atiptap-notion .ProseMirror table {
   margin: 8px 0;
 }
 
-.atiptap-notion [data-content-type='table'] .tableWrapper {
+:is(.atiptap-notion, .atiptap-content) .ProseMirror .tableWrapper {
+  overflow: visible;
+}
+
+.atiptap-notion .ProseMirror .tableWrapper {
+  margin: 8px 0;
+}
+
+/* ATiptap：不要用 margin:0 清掉手柄负边距 */
+.atiptap-content .ProseMirror table {
+  margin: 0;
+}
+
+.atiptap-content .ProseMirror .tableWrapper {
+  margin-top: 0;
+  margin-right: 0;
+  margin-bottom: 0;
+}
+
+.atiptap-content .ProseMirror > [data-content-type='table'] {
+  margin-top: -12px;
+  margin-bottom: 0;
+}
+
+/* 手柄热区向外扩，表格网格与正文左缘对齐（必须放在 margin 重置之后） */
+:is(.atiptap-notion, .atiptap-content) [data-content-type='table'] .tableWrapper {
   padding: 12px 16px 16px 12px;
   margin-left: -12px;
 }
 
-.atiptap-notion [data-content-type='table'][data-align='center'] .table-container {
+:is(.atiptap-notion, .atiptap-content) [data-content-type='table'][data-align='center'] .table-container {
   display: flex;
   justify-content: center;
 }
 
-.atiptap-notion [data-content-type='table'][data-align='right'] .table-container {
+:is(.atiptap-notion, .atiptap-content) [data-content-type='table'][data-align='right'] .table-container {
   display: flex;
   justify-content: flex-end;
 }
 
-.atiptap-notion .ProseMirror th,
-.atiptap-notion .ProseMirror td {
+:is(.atiptap-notion, .atiptap-content) .ProseMirror th,
+:is(.atiptap-notion, .atiptap-content) .ProseMirror td {
   position: relative;
   box-sizing: border-box;
-  border: 1px solid var(--atiptap-color-border-secondary);
+  border: 1px solid var(--atiptap-color-border);
   padding: 8px 12px;
   min-width: 80px;
   vertical-align: top;
+  text-indent: 0;
 }
 
-.atiptap-notion .ProseMirror th {
+:is(.atiptap-notion, .atiptap-content) .ProseMirror th p,
+:is(.atiptap-notion, .atiptap-content) .ProseMirror td p {
+  text-indent: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+:is(.atiptap-notion, .atiptap-content) .ProseMirror th p + p,
+:is(.atiptap-notion, .atiptap-content) .ProseMirror td p + p {
+  margin-top: 8px;
+}
+
+:is(.atiptap-notion, .atiptap-content) .ProseMirror th > :has(+ .column-resize-handle),
+:is(.atiptap-notion, .atiptap-content) .ProseMirror td > :has(+ .column-resize-handle) {
+  margin-bottom: 0;
+}
+
+:is(.atiptap-notion, .atiptap-content) .ProseMirror th {
   background: var(--atiptap-color-bg-spotlight);
   font-weight: 600;
 }
@@ -706,27 +741,29 @@
   color: var(--atiptap-color-text-quaternary);
 }
 
-.atiptap-notion .react-renderer.node-image,
-.atiptap-notion .react-renderer.node-file {
+:is(.atiptap-notion, .atiptap-content) .react-renderer.node-image,
+:is(.atiptap-notion, .atiptap-content) .react-renderer.node-file {
   white-space: normal;
   line-height: 0;
   caret-color: transparent;
+  text-indent: 0;
 }
 
-.atiptap-notion .react-renderer.node-imageUpload,
-.atiptap-notion .react-renderer.node-fileUpload {
+:is(.atiptap-notion, .atiptap-content) .react-renderer.node-imageUpload,
+:is(.atiptap-notion, .atiptap-content) .react-renderer.node-fileUpload {
   white-space: normal;
   caret-color: transparent;
+  text-indent: 0;
 }
 
-.atiptap-notion .react-renderer.node-image > .ProseMirror-separator,
-.atiptap-notion .react-renderer.node-image > .ProseMirror-trailingBreak,
-.atiptap-notion .react-renderer.node-imageUpload > .ProseMirror-separator,
-.atiptap-notion .react-renderer.node-imageUpload > .ProseMirror-trailingBreak,
-.atiptap-notion .react-renderer.node-file > .ProseMirror-separator,
-.atiptap-notion .react-renderer.node-file > .ProseMirror-trailingBreak,
-.atiptap-notion .react-renderer.node-fileUpload > .ProseMirror-separator,
-.atiptap-notion .react-renderer.node-fileUpload > .ProseMirror-trailingBreak {
+:is(.atiptap-notion, .atiptap-content) .react-renderer.node-image > .ProseMirror-separator,
+:is(.atiptap-notion, .atiptap-content) .react-renderer.node-image > .ProseMirror-trailingBreak,
+:is(.atiptap-notion, .atiptap-content) .react-renderer.node-imageUpload > .ProseMirror-separator,
+:is(.atiptap-notion, .atiptap-content) .react-renderer.node-imageUpload > .ProseMirror-trailingBreak,
+:is(.atiptap-notion, .atiptap-content) .react-renderer.node-file > .ProseMirror-separator,
+:is(.atiptap-notion, .atiptap-content) .react-renderer.node-file > .ProseMirror-trailingBreak,
+:is(.atiptap-notion, .atiptap-content) .react-renderer.node-fileUpload > .ProseMirror-separator,
+:is(.atiptap-notion, .atiptap-content) .react-renderer.node-fileUpload > .ProseMirror-trailingBreak {
   display: none !important;
   height: 0 !important;
   width: 0 !important;
@@ -1148,26 +1185,25 @@
   padding: 0 2px;
 }
 
-.atiptap-notion .ProseMirror .column-resize-handle {
+:is(.atiptap-notion, .atiptap-content) .ProseMirror .column-resize-handle {
   position: absolute;
   top: 0;
-  right: 0;
-  width: 2px;
-  height: calc(100% + 2px);
-  margin-inline-start: -1px;
-  margin-top: -1px;
+  right: -1px;
+  bottom: 0;
+  width: 4px;
+  height: auto;
+  margin: 0;
   z-index: 1;
   background: var(--atiptap-color-primary);
-  pointer-events: auto;
-  cursor: col-resize;
-  transition: background 150ms 50ms;
-}
-
-.atiptap-notion .ProseMirror.resize-cursor {
+  pointer-events: none;
   cursor: col-resize;
 }
 
-.atiptap-notion .ProseMirror .selectedCell::after {
+:is(.atiptap-notion, .atiptap-content) .ProseMirror.resize-cursor {
+  cursor: col-resize;
+}
+
+:is(.atiptap-notion, .atiptap-content) .ProseMirror .selectedCell::after {
   content: '';
   position: absolute;
   z-index: 2;
@@ -1176,8 +1212,8 @@
   pointer-events: none;
 }
 
-.atiptap-notion .ProseMirror[contenteditable='false'] .column-resize-handle,
-.atiptap-notion .ProseMirror[contenteditable='false'] .selectedCell::after {
+:is(.atiptap-notion, .atiptap-content) .ProseMirror[contenteditable='false'] .column-resize-handle,
+:is(.atiptap-notion, .atiptap-content) .ProseMirror[contenteditable='false'] .selectedCell::after {
   display: none;
   pointer-events: none;
 }
@@ -1337,6 +1373,7 @@
   margin: 8px 0;
   line-height: 0;
   max-width: 100%;
+  text-indent: 0;
 }
 
 .atiptap-notion-image[data-align='left'] {
@@ -1364,12 +1401,12 @@
   border-radius: var(--atiptap-border-radius-sm);
 }
 
-.atiptap-notion .ProseMirror[contenteditable='false'] .atiptap-notion-image__img {
+:is(.atiptap-notion, .atiptap-content) .ProseMirror[contenteditable='false'] .atiptap-notion-image__img {
   cursor: zoom-in;
   transition: opacity 0.2s cubic-bezier(0.215, 0.61, 0.355, 1);
 }
 
-.atiptap-notion .ProseMirror[contenteditable='false'] .atiptap-notion-image__img:hover {
+:is(.atiptap-notion, .atiptap-content) .ProseMirror[contenteditable='false'] .atiptap-notion-image__img:hover {
   opacity: 0.92;
 }
 
@@ -1438,6 +1475,7 @@
 .atiptap-notion-upload {
   margin: 8px 0;
   line-height: 1.5714285714285714;
+  text-indent: 0;
 }
 
 .atiptap-notion-upload__dropzone {
@@ -1492,6 +1530,7 @@
 .atiptap-notion-file-node {
   margin: 8px 0;
   line-height: 1.5714285714285714;
+  text-indent: 0;
 }
 
 .atiptap-notion-file-node.is-selected .atiptap-notion-file {
@@ -1776,11 +1815,11 @@
   pointer-events: none;
 }
 
-.atiptap-notion .table-cell-dragging-source {
+:is(.atiptap-notion, .atiptap-content) .table-cell-dragging-source {
   background: var(--atiptap-color-primary-bg);
 }
 
-.atiptap-notion .tiptap-table-dropcursor {
+:is(.atiptap-notion, .atiptap-content) .tiptap-table-dropcursor {
   position: absolute;
   z-index: 20;
   background: var(--atiptap-color-primary);

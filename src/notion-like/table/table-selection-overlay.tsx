@@ -241,6 +241,10 @@ export const TableSelectionOverlay: React.FC<TableSelectionOverlayProps> = ({
 
   const anchorCellRef = useRef<number | null>(null);
   const activeHandleRef = useRef<ResizeHandle>(null);
+  const resizeListenersRef = useRef<{
+    move: (event: MouseEvent) => void;
+    up: () => void;
+  } | null>(null);
 
   const { refs, floatingStyles, update } = useFloating({
     placement: 'top-start',
@@ -304,6 +308,35 @@ export const TableSelectionOverlay: React.FC<TableSelectionOverlayProps> = ({
 
   useResizeOverlay(editor ?? null, updateSelectionRect);
 
+  const stopCellResize = useCallback(() => {
+    const listeners = resizeListenersRef.current;
+    if (listeners) {
+      window.removeEventListener('mousemove', listeners.move);
+      window.removeEventListener('mouseup', listeners.up);
+      window.removeEventListener('pointerup', listeners.up);
+      window.removeEventListener('pointercancel', listeners.up);
+      resizeListenersRef.current = null;
+    }
+    setActiveHandle(null);
+    activeHandleRef.current = null;
+    anchorCellRef.current = null;
+  }, []);
+
+  useEffect(
+    () => () => {
+      const listeners = resizeListenersRef.current;
+      if (!listeners) {
+        return;
+      }
+      window.removeEventListener('mousemove', listeners.move);
+      window.removeEventListener('mouseup', listeners.up);
+      window.removeEventListener('pointerup', listeners.up);
+      window.removeEventListener('pointercancel', listeners.up);
+      resizeListenersRef.current = null;
+    },
+    []
+  );
+
   useEffect(() => {
     if (update && selectionRect) {
       update();
@@ -341,6 +374,7 @@ export const TableSelectionOverlay: React.FC<TableSelectionOverlayProps> = ({
       const anchorCell = getAnchorCellForHandle(editor.view, cellSelection, selectionRect, handle);
       if (!anchorCell) return;
 
+      stopCellResize();
       setActiveHandle(handle);
       activeHandleRef.current = handle;
       anchorCellRef.current = anchorCell.pos;
@@ -373,19 +407,14 @@ export const TableSelectionOverlay: React.FC<TableSelectionOverlayProps> = ({
         }
       };
 
-      const handleMouseUp = () => {
-        setActiveHandle(null);
-        activeHandleRef.current = null;
-        anchorCellRef.current = null;
-
-        window.removeEventListener('mousemove', handleMouseMove);
-        window.removeEventListener('mouseup', handleMouseUp);
-      };
-
+      const listeners = { move: handleMouseMove, up: stopCellResize };
+      resizeListenersRef.current = listeners;
       window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
+      window.addEventListener('mouseup', listeners.up);
+      window.addEventListener('pointerup', listeners.up);
+      window.addEventListener('pointercancel', listeners.up);
     },
-    [editor, selectionRect, isMenuOpen, showResizeHandles]
+    [editor, selectionRect, isMenuOpen, showResizeHandles, stopCellResize]
   );
 
   const handleMenuOpenChange = useCallback(

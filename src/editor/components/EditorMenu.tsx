@@ -15,6 +15,7 @@ import {
   Maximize2,
   Minimize2,
   Minus,
+  Paperclip,
   Quote,
   Redo2,
   Strikethrough,
@@ -22,11 +23,12 @@ import {
   Underline,
   Undo2
 } from 'lucide-react';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ATitleBar } from '../../extensions/ATitleBar';
 import TextButton from '../../extensions/TextButton';
-import { insertImageFiles, pickLocalImage } from '../../image-upload';
 import { MenuBar } from '../../menubar';
+import { insertFileUploadNode } from '../../notion-like/file';
+import { insertImageUploadNode } from '../../notion-like/image';
 import '../../notion-like/notion-like.css';
 import { LinkPopover } from '../../ui/LinkPopover';
 import type { ATiptapEditor } from '../ATiptapEditor';
@@ -56,25 +58,7 @@ export const EditorMenu: React.FC<{
   showGovBlocks = false
 }) => {
   const { fullscreen, editable, editorStateVersion } = useEditorContext();
-  const [resourceInput, setResourceInput] = useState<{
-    type: 'image';
-    value: string;
-  } | null>(null);
   const [highlightOpen, setHighlightOpen] = useState(false);
-  const resourceInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    resourceInputRef.current?.focus();
-  }, [resourceInput]);
-
-  const applyResource = () => {
-    if (!editor || !resourceInput?.value.trim()) {
-      return;
-    }
-
-    editor.chain().focus().setImage({ src: resourceInput.value.trim() }).run();
-    setResourceInput(null);
-  };
 
   const menuItems = useMemo(() => {
     if (!editor) {
@@ -87,6 +71,9 @@ export const EditorMenu: React.FC<{
       orderedList,
       taskList,
       image,
+      imageUpload,
+      file,
+      fileUpload,
       table,
       codeBlock,
       blockquote,
@@ -98,20 +85,12 @@ export const EditorMenu: React.FC<{
     return [
       [
         editor.menuEnableUndoRedo && (
-          <TextButton
-            key="undo"
-            title="撤销"
-            onClick={() => editor.chain().focus().undo().run()}
-          >
+          <TextButton key="undo" title="撤销" onClick={() => editor.chain().focus().undo().run()}>
             <Undo2 size={16} />
           </TextButton>
         ),
         editor.menuEnableUndoRedo && (
-          <TextButton
-            key="redo"
-            title="重做"
-            onClick={() => editor.chain().focus().redo().run()}
-          >
+          <TextButton key="redo" title="重做" onClick={() => editor.chain().focus().redo().run()}>
             <Redo2 size={16} />
           </TextButton>
         )
@@ -277,22 +256,14 @@ export const EditorMenu: React.FC<{
       ],
       [
         link && <LinkPopover key="link" editor={editor} compact />,
-        image && (
-          <TextButton
-            key="image"
-            title="图片"
-            onClick={() => {
-              const upload = editor.storage.imageUploader?.upload;
-              if (upload) {
-                pickLocalImage(file => {
-                  void insertImageFiles(editor, [file], upload);
-                });
-                return;
-              }
-              setResourceInput({ type: 'image', value: '' });
-            }}
-          >
+        (image || imageUpload) && (
+          <TextButton key="image" title="图片" onClick={() => insertImageUploadNode(editor)}>
             <ImageIcon size={16} />
+          </TextButton>
+        ),
+        (file || fileUpload) && (
+          <TextButton key="file" title="文件" onClick={() => insertFileUploadNode(editor, 'file')}>
+            <Paperclip size={16} />
           </TextButton>
         ),
         table && (
@@ -391,39 +362,6 @@ export const EditorMenu: React.FC<{
       >
         {menuItems}
       </MenuBar>
-      {resourceInput && (
-        <div className="atiptap-menu-resource-input" role="dialog" aria-label="资源地址输入">
-          <label>
-            图片地址
-            <input
-              ref={resourceInputRef}
-              type="url"
-              value={resourceInput.value}
-              placeholder="https://"
-              onChange={event =>
-                setResourceInput(current =>
-                  current ? { ...current, value: event.target.value } : current
-                )
-              }
-              onKeyDown={event => {
-                if (event.key === 'Enter') {
-                  event.preventDefault();
-                  applyResource();
-                }
-                if (event.key === 'Escape') {
-                  setResourceInput(null);
-                }
-              }}
-            />
-          </label>
-          <button type="button" onClick={applyResource}>
-            确定
-          </button>
-          <button type="button" onClick={() => setResourceInput(null)}>
-            取消
-          </button>
-        </div>
-      )}
     </div>
   );
 };
